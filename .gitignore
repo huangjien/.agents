@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Local backups & archives (dated snapshots, not source)
+.archive/
+.deleted-skills-*/
+
+# Agent tool runtime state
+.omo/
+
+# Editors & IDEs
+.vscode/
+.idea/
+*.swp
+
+# Node (workflow scripts)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs & temp files
+*.log
+.tmp/
+.env
+.env.*

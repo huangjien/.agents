@@ -1,0 +1,990 @@
+{
+  "summary": {
+    "total": 739,
+    "ok": 675,
+    "warning": 13,
+    "broken": 51,
+    "name_mismatch": 51,
+    "missing_triggers": 6,
+    "disable_disabled": 7,
+    "disable_broken": 0,
+    "missing_name": 0,
+    "no_frontmatter": 0,
+    "yaml_parse_error": 0,
+    "trigger_styles": {
+      "when-claude": 22,
+      "verb-capability": 255,
+      "explicit-use-when": 408,
+      "slash-command": 36,
+      "minimal": 18
+    }
+  },
+  "by_root": {
+    "/Users/huangjien/.agents/skills": 55,
+    "/Users/huangjien/.copilot": 72,
+    "/Users/huangjien/.codex": 574,
+    "/Users/huangjien/.gemini": 38
+  },
+  "failures": [
+    {
+      "path": "/Users/huangjien/.agents/skills/i-have-adhd/SKILL.md",
+      "dir": "i-have-adhd",
+      "status": "warning",
+      "name_field": "i-have-adhd",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 242,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.agents/skills/react-native-skills/SKILL.md",
+      "dir": "react-native-skills",
+      "status": "broken",
+      "name_field": "vercel-react-native-skills",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 295,
+      "findings": [
+        "name field 'vercel-react-native-skills' != directory 'react-native-skills'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.agents/skills/react-view-transitions/SKILL.md",
+      "dir": "react-view-transitions",
+      "status": "broken",
+      "name_field": "vercel-react-view-transitions",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 664,
+      "findings": [
+        "name field 'vercel-react-view-transitions' != directory 'react-view-transitions'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.agents/skills/setup-matt-pocock-skills/SKILL.md",
+      "dir": "setup-matt-pocock-skills",
+      "status": "warning",
+      "name_field": "setup-matt-pocock-skills",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 438,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.agents/skills/zoom-out/SKILL.md",
+      "dir": "zoom-out",
+      "status": "warning",
+      "name_field": "zoom-out",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 191,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.copilot/skills/i-have-adhd/SKILL.md",
+      "dir": "i-have-adhd",
+      "status": "warning",
+      "name_field": "i-have-adhd",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 242,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/build-web-apps/skills/shadcn-best-practices/SKILL.md",
+      "dir": "shadcn-best-practices",
+      "status": "broken",
+      "name_field": "shadcn",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 384,
+      "findings": [
+        "name field 'shadcn' != directory 'shadcn-best-practices'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/build-web-apps/skills/supabase-best-practices/SKILL.md",
+      "dir": "supabase-best-practices",
+      "status": "broken",
+      "name_field": "supabase-postgres-best-practices",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 183,
+      "findings": [
+        "name field 'supabase-postgres-best-practices' != directory 'supabase-best-practices'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/circleci/skills/builds/SKILL.md",
+      "dir": "builds",
+      "status": "broken",
+      "name_field": "circleci-builds",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 259,
+      "findings": [
+        "name field 'circleci-builds' != directory 'builds'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/circleci/skills/cli/SKILL.md",
+      "dir": "cli",
+      "status": "broken",
+      "name_field": "circleci-cli",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 266,
+      "findings": [
+        "name field 'circleci-cli' != directory 'cli'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/circleci/skills/config/SKILL.md",
+      "dir": "config",
+      "status": "broken",
+      "name_field": "circleci-config",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 273,
+      "findings": [
+        "name field 'circleci-config' != directory 'config'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/coderabbit/skills/coderabbit-review/SKILL.md",
+      "dir": "coderabbit-review",
+      "status": "broken",
+      "name_field": "code-review",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 159,
+      "findings": [
+        "name field 'code-review' != directory 'coderabbit-review'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/mixpanel-headless/skills/setup/SKILL.md",
+      "dir": "setup",
+      "status": "broken",
+      "name_field": "mixpanel-headless-setup",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "ok",
+      "disable_note": "set to false (explicit)",
+      "description_len": 357,
+      "findings": [
+        "name field 'mixpanel-headless-setup' != directory 'setup'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/remotion/skills/remotion-best-practices/SKILL.md",
+      "dir": "remotion-best-practices",
+      "status": "warning",
+      "name_field": "remotion-best-practices",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 30,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/remotion/skills/remotion-interactivity/SKILL.md",
+      "dir": "remotion-interactivity",
+      "status": "warning",
+      "name_field": "remotion-interactivity",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 43,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/remotion/skills/remotion-markup/SKILL.md",
+      "dir": "remotion-markup",
+      "status": "warning",
+      "name_field": "remotion-markup",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 45,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/remotion/skills/remotion-multimedia/SKILL.md",
+      "dir": "remotion-multimedia",
+      "status": "warning",
+      "name_field": "remotion-multimedia",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 27,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/remotion/skills/remotion-studio/SKILL.md",
+      "dir": "remotion-studio",
+      "status": "warning",
+      "name_field": "remotion-studio",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 24,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/shopify/skills/shopify-partner/SKILL.md",
+      "dir": "shopify-partner",
+      "status": "warning",
+      "name_field": "shopify-partner",
+      "name_match": true,
+      "triggers": false,
+      "trigger_style": "minimal",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 137,
+      "findings": [
+        "description lacks trigger phrases (e.g., 'Use when ...')"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/temporal/skills/temporal-cloud-setup/SKILL.md",
+      "dir": "temporal-cloud-setup",
+      "status": "warning",
+      "name_field": "temporal-cloud-setup",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 553,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/temporal/skills/temporal-ops/SKILL.md",
+      "dir": "temporal-ops",
+      "status": "warning",
+      "name_field": "temporal-ops",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 694,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/temporal/skills/temporal-serverless/SKILL.md",
+      "dir": "temporal-serverless",
+      "status": "warning",
+      "name_field": "temporal-serverless",
+      "name_match": true,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "disabled",
+      "disable_note": "set to true (model will not invoke this)",
+      "description_len": 346,
+      "findings": [
+        "`disable-model-invocation: true` (model will not load)"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/twilio-developer-kit/skills/twilio-conversation-intelligence/SKILL.md",
+      "dir": "twilio-conversation-intelligence",
+      "status": "broken",
+      "name_field": "conversation-intelligence",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 298,
+      "findings": [
+        "name field 'conversation-intelligence' != directory 'twilio-conversation-intelligence'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/twilio-developer-kit/skills/twilio-sms-isv-setup/SKILL.md",
+      "dir": "twilio-sms-isv-setup",
+      "status": "broken",
+      "name_field": "twilio-isv-sms-best-practices",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 368,
+      "findings": [
+        "name field 'twilio-isv-sms-best-practices' != directory 'twilio-sms-isv-setup'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/cobrowse-sdk/SKILL.md",
+      "dir": "cobrowse-sdk",
+      "status": "broken",
+      "name_field": "zoom-cobrowse-sdk",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 24,
+      "findings": [
+        "name field 'zoom-cobrowse-sdk' != directory 'cobrowse-sdk'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/contact-center/SKILL.md",
+      "dir": "contact-center",
+      "status": "broken",
+      "name_field": "build-zoom-contact-center-app",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 30,
+      "findings": [
+        "name field 'build-zoom-contact-center-app' != directory 'contact-center'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/contact-center/android/SKILL.md",
+      "dir": "android",
+      "status": "broken",
+      "name_field": "zoom-contact-center-android",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 162,
+      "findings": [
+        "name field 'zoom-contact-center-android' != directory 'android'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/contact-center/ios/SKILL.md",
+      "dir": "ios",
+      "status": "broken",
+      "name_field": "zoom-contact-center-ios",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 159,
+      "findings": [
+        "name field 'zoom-contact-center-ios' != directory 'ios'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/contact-center/web/SKILL.md",
+      "dir": "web",
+      "status": "broken",
+      "name_field": "zoom-contact-center-web",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 164,
+      "findings": [
+        "name field 'zoom-contact-center-web' != directory 'web'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/general/SKILL.md",
+      "dir": "general",
+      "status": "broken",
+      "name_field": "zoom-general",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 28,
+      "findings": [
+        "name field 'zoom-general' != directory 'general'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/SKILL.md",
+      "dir": "meeting-sdk",
+      "status": "broken",
+      "name_field": "build-zoom-meeting-sdk-app",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 27,
+      "findings": [
+        "name field 'build-zoom-meeting-sdk-app' != directory 'meeting-sdk'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/android/SKILL.md",
+      "dir": "android",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-android",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 177,
+      "findings": [
+        "name field 'zoom-meeting-sdk-android' != directory 'android'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/electron/SKILL.md",
+      "dir": "electron",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-electron",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 208,
+      "findings": [
+        "name field 'zoom-meeting-sdk-electron' != directory 'electron'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/ios/SKILL.md",
+      "dir": "ios",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-ios",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 170,
+      "findings": [
+        "name field 'zoom-meeting-sdk-ios' != directory 'ios'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/linux/SKILL.md",
+      "dir": "linux",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-linux",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 155,
+      "findings": [
+        "name field 'zoom-meeting-sdk-linux' != directory 'linux'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/macos/SKILL.md",
+      "dir": "macos",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-macos",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 186,
+      "findings": [
+        "name field 'zoom-meeting-sdk-macos' != directory 'macos'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/react-native/SKILL.md",
+      "dir": "react-native",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-react-native",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 215,
+      "findings": [
+        "name field 'zoom-meeting-sdk-react-native' != directory 'react-native'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/unreal/SKILL.md",
+      "dir": "unreal",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-unreal",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 191,
+      "findings": [
+        "name field 'zoom-meeting-sdk-unreal' != directory 'unreal'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/web/SKILL.md",
+      "dir": "web",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-web",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 286,
+      "findings": [
+        "name field 'zoom-meeting-sdk-web' != directory 'web'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/web/client-view/SKILL.md",
+      "dir": "client-view",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-web-client-view",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 255,
+      "findings": [
+        "name field 'zoom-meeting-sdk-web-client-view' != directory 'client-view'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/web/component-view/SKILL.md",
+      "dir": "component-view",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-web-component-view",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 252,
+      "findings": [
+        "name field 'zoom-meeting-sdk-web-component-view' != directory 'component-view'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/meeting-sdk/windows/SKILL.md",
+      "dir": "windows",
+      "status": "broken",
+      "name_field": "zoom-meeting-sdk-windows",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 296,
+      "findings": [
+        "name field 'zoom-meeting-sdk-windows' != directory 'windows'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/oauth/SKILL.md",
+      "dir": "oauth",
+      "status": "broken",
+      "name_field": "zoom-oauth",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 28,
+      "findings": [
+        "name field 'zoom-oauth' != directory 'oauth'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/phone/SKILL.md",
+      "dir": "phone",
+      "status": "broken",
+      "name_field": "build-zoom-phone-integration",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 24,
+      "findings": [
+        "name field 'build-zoom-phone-integration' != directory 'phone'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/rest-api/SKILL.md",
+      "dir": "rest-api",
+      "status": "broken",
+      "name_field": "build-zoom-rest-api-app",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 27,
+      "findings": [
+        "name field 'build-zoom-rest-api-app' != directory 'rest-api'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/rtms/SKILL.md",
+      "dir": "rtms",
+      "status": "broken",
+      "name_field": "zoom-rtms",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 20,
+      "findings": [
+        "name field 'zoom-rtms' != directory 'rtms'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/team-chat/SKILL.md",
+      "dir": "team-chat",
+      "status": "broken",
+      "name_field": "build-zoom-team-chat-app",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 28,
+      "findings": [
+        "name field 'build-zoom-team-chat-app' != directory 'team-chat'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/SKILL.md",
+      "dir": "video-sdk",
+      "status": "broken",
+      "name_field": "build-zoom-video-sdk-app",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 25,
+      "findings": [
+        "name field 'build-zoom-video-sdk-app' != directory 'video-sdk'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/android/SKILL.md",
+      "dir": "android",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-android",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 183,
+      "findings": [
+        "name field 'zoom-video-sdk-android' != directory 'android'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/flutter/SKILL.md",
+      "dir": "flutter",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-flutter",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 207,
+      "findings": [
+        "name field 'zoom-video-sdk-flutter' != directory 'flutter'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/ios/SKILL.md",
+      "dir": "ios",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-ios",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 169,
+      "findings": [
+        "name field 'zoom-video-sdk-ios' != directory 'ios'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/linux/SKILL.md",
+      "dir": "linux",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-linux",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 115,
+      "findings": [
+        "name field 'zoom-video-sdk-linux' != directory 'linux'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/macos/SKILL.md",
+      "dir": "macos",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-macos",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 176,
+      "findings": [
+        "name field 'zoom-video-sdk-macos' != directory 'macos'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/react-native/SKILL.md",
+      "dir": "react-native",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-react-native",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 189,
+      "findings": [
+        "name field 'zoom-video-sdk-react-native' != directory 'react-native'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/unity/SKILL.md",
+      "dir": "unity",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-unity",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 163,
+      "findings": [
+        "name field 'zoom-video-sdk-unity' != directory 'unity'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/web/SKILL.md",
+      "dir": "web",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-web",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "verb-capability",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 167,
+      "findings": [
+        "name field 'zoom-video-sdk-web' != directory 'web'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/video-sdk/windows/SKILL.md",
+      "dir": "windows",
+      "status": "broken",
+      "name_field": "zoom-video-sdk-windows",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "slash-command",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 144,
+      "findings": [
+        "name field 'zoom-video-sdk-windows' != directory 'windows'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/virtual-agent/SKILL.md",
+      "dir": "virtual-agent",
+      "status": "broken",
+      "name_field": "build-zoom-virtual-agent",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 29,
+      "findings": [
+        "name field 'build-zoom-virtual-agent' != directory 'virtual-agent'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/virtual-agent/android/SKILL.md",
+      "dir": "android",
+      "status": "broken",
+      "name_field": "zoom-virtual-agent-android",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 163,
+      "findings": [
+        "name field 'zoom-virtual-agent-android' != directory 'android'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/virtual-agent/ios/SKILL.md",
+      "dir": "ios",
+      "status": "broken",
+      "name_field": "zoom-virtual-agent-ios",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 160,
+      "findings": [
+        "name field 'zoom-virtual-agent-ios' != directory 'ios'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/virtual-agent/web/SKILL.md",
+      "dir": "web",
+      "status": "broken",
+      "name_field": "zoom-virtual-agent-web",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 150,
+      "findings": [
+        "name field 'zoom-virtual-agent-web' != directory 'web'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/webhooks/SKILL.md",
+      "dir": "webhooks",
+      "status": "broken",
+      "name_field": "setup-zoom-webhooks",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 32,
+      "findings": [
+        "name field 'setup-zoom-webhooks' != directory 'webhooks'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zoom/skills/websockets/SKILL.md",
+      "dir": "websockets",
+      "status": "broken",
+      "name_field": "setup-zoom-websockets",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 34,
+      "findings": [
+        "name field 'setup-zoom-websockets' != directory 'websockets'"
+      ]
+    },
+    {
+      "path": "/Users/huangjien/.codex/.tmp/plugins/plugins/zotero/skills/zotero/SKILL.md",
+      "dir": "zotero",
+      "status": "broken",
+      "name_field": "Zotero",
+      "name_match": false,
+      "triggers": true,
+      "trigger_style": "explicit-use-when",
+      "disable_status": "missing",
+      "disable_note": null,
+      "description_len": 453,
+      "findings": [
+        "name field 'Zotero' != directory 'zotero'"
+      ]
+    }
+  ]
+}

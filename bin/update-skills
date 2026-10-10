@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# ~/.agents/bin/update-skills — wrapper for the skill updater.
+# Resolves the script path so the bin dir can move without breaking.
+exec python3 "${HOME}/.agents/skills/_tools/update_skills.py" "$@"

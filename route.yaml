@@ -1,0 +1,248 @@
+# ================================================================= ==
+# route.yaml — Major Agent Routing Rules                              ==
+# Single source of truth for intent classification + subagent dispatch ==
+#                                                                    ==
+# Read by:                                                           ==
+#   - OpenCode Major agent (~/.agents/opencode/agent/major.md)       ==
+#   - pi / Codex / Gemini / Copilot via ~/AGENTS.md reference        ==
+#                                                                    ==
+# Edit this file to add routes, change subagents, or tune triggers.  ==
+# ================================================================= ==
+
+version: 1
+
+# --- Major agent behavior config --------------------------------- --
+major_agent:
+  name: Major
+  description: Universal entry point. Classifies user intent and dispatches to domain specialists.
+  default_behavior: classify_then_delegate
+
+  # Things Major handles itself (DO NOT delegate)
+  handle_directly:
+    - greetings           # hi, hello, hey
+    - farewells           # bye, thanks
+    - identity_queries    # who are you, what can you do
+    - clarifications      # asking about a previous response
+    - simple_factoids     # one-line factual answers
+    - meta_questions      # about route.yaml, agents list, system state
+    - status_checks       # what's running, what's done
+
+# --- Subagent registry ------------------------------------------- --
+# Each entry: id (used in dispatch), role summary, model tier hint
+subagents:
+  - id: architect
+    role: System design, scalability, tech decisions, planning
+    tier: expensive          # uses high-IQ reasoning
+  - id: coder
+    role: Write/modify code, implement features, refactor
+    tier: balanced
+  - id: debugger
+    role: Diagnose bugs, root cause analysis, fix failures
+    tier: expensive
+  - id: reviewer
+    role: Code review, security audit, quality checks
+    tier: balanced
+  - id: researcher
+    role: Investigate, gather info, explain concepts, lookup docs
+    tier: cheap              # uses external search, doesn't need deep reasoning
+  - id: tester
+    role: Write tests, run tests, improve coverage, TDD
+    tier: balanced
+  - id: doc-writer
+    role: Documentation, READMEs, technical prose, comments
+    tier: cheap
+  - id: laptop-admin
+    role: Safe laptop, system, and agent-tool administration
+    tier: balanced
+  - id: software-maintainer
+    role: Maintain local developer software, CLIs, and runtimes
+    tier: balanced
+
+# --- Routing rules ------------------------------------------------ --
+# Order matters: earlier routes win on tie. Trigger matching is
+# keyword OR phrase match (case-insensitive substring).
+routes:
+  - intent: laptop_administration
+    description: Manage this laptop, its configuration, installed tools, or agent clients
+    triggers:
+      keywords: [laptop, macOS, mac, computer, uninstall, configuration,
+                 disk, storage]
+      phrases:
+        - set up my laptop
+        - manage my computer
+        - configure globally
+        - install an agent
+        - manage agent tools
+    agents:
+      primary: laptop-admin
+      support: [software-maintainer]
+    priority: 95
+
+  - intent: software_maintenance
+    description: Maintain developer software, package managers, CLIs, and runtimes
+    triggers:
+      keywords: [package, dependency, runtime, cli, toolchain, homebrew, npm,
+                 pnpm, pip, rustup, upgrade]
+      phrases:
+        - update my tools
+        - upgrade the toolchain
+        - install a package
+    agents:
+      primary: software-maintainer
+      support: [researcher]
+    priority: 92
+
+  - intent: debugging
+    description: Something is broken, failing, erroring, or regressing
+    triggers:
+      keywords: [fix, bug, error, broken, crash, failing, fails, failed,
+                 debug, diagnose, regression, traceback, exception,
+                 "doesn't work", "not working", "why is", stuck, hang]
+      phrases:
+        - something is wrong
+        - used to work
+        - suddenly stopped
+        - it broke
+    agents:
+      primary: debugger
+      support: [researcher]    # parallel: docs/examples lookup
+    priority: 90               # higher = wins more ties
+
+  - intent: implementation
+    description: Build, write, create, or modify code
+    triggers:
+      keywords: [implement, build, create, add, write, develop, generate,
+                 refactor, modify, update, integrate, wire up, scaffold]
+      phrases:
+        - I want to add
+        - build a feature
+        - write a function
+        - generate a
+        - add support for
+        - set up
+    agents:
+      primary: coder
+      support: [tester, reviewer]   # sequential: test after, review last
+    priority: 80
+
+  - intent: review
+    description: Audit, check, review for quality or security
+    triggers:
+      keywords: [review, audit, check, lint, security, vulnerability,
+                 quality, inspect, scan]
+      phrases:
+        - review my code
+        - check this for
+        - is this secure
+        - audit
+        - look for issues
+    agents:
+      primary: reviewer
+      support: []
+    priority: 70
+
+  - intent: architecture
+    description: System design, planning, tech decisions, scalability
+    triggers:
+      keywords: [architecture, design, scalable, scale, system, planning,
+                 decide, decision, "should I", strategy, refactor large,
+                 restructure, modularize]
+      phrases:
+        - how should I structure
+        - design a system
+        - technical decision
+        - plan the
+        - approach for
+    agents:
+      primary: architect
+      support: [researcher]    # parallel: similar patterns / prior art
+    priority: 75
+
+  - intent: testing
+    description: Write tests, improve coverage, test strategy
+    triggers:
+      keywords: [test, tests, coverage, TDD, "unit test", "integration test",
+                 "e2e test", fixture, mock, jest, vitest, pytest]
+      phrases:
+        - add tests
+        - write tests
+        - test coverage
+        - test this
+        - increase coverage
+    agents:
+      primary: tester
+      support: []
+    priority: 65
+
+  - intent: documentation
+    description: Write docs, READMEs, technical prose
+    triggers:
+      keywords: [document, docs, README, javadoc, docstring, explain in writing]
+      phrases:
+        - write documentation
+        - document this
+        - update the README
+        - add comments
+    agents:
+      primary: doc-writer
+      support: []
+    priority: 60
+
+  - intent: investigation
+    description: Research, explain, understand, look into
+    triggers:
+      keywords: [explain, understand, "how does", "why does", "what is",
+                 investigate, research, explore, find, "look into",
+                 "tell me about", analyze, "where is"]
+      phrases:
+        - I want to understand
+        - look into
+        - find out
+        - where can I find
+        - how do I use
+    agents:
+      primary: researcher
+      support: []
+    priority: 50
+
+# --- Fallback (no route matched) --------------------------------- --
+fallback:
+  intent: general
+  description: Could not classify confidently
+  agents:
+    primary: researcher       # safest default: gather info before acting
+  note: |
+    If the request is genuinely ambiguous, ask ONE clarifying question
+    before delegating. Do not ping-pong the user.
+
+# --- Routing meta-rules ------------------------------------------ --
+rules:
+  - name: explicit_over_implicit
+    description: >
+      If the user names a subagent explicitly ("use the debugger",
+      "ask the architect"), honor that choice over keyword matching.
+
+  - name: simple_shortcut
+    description: >
+      Requests under ~10 words that match no route are likely simple
+      questions — handle directly instead of routing.
+
+  - name: parallel_support
+    description: >
+      "support" agents run in parallel with "primary" when possible.
+      If parallelism isn't available, run primary first, then support.
+
+  - name: cost_awareness
+    description: >
+      Tier hints (expensive/balanced/cheap) suggest model choice.
+      Respect them when picking a model for the subagent call.
+
+  - name: no_orphan_delegation
+    description: >
+      Never invoke a subagent without telling the user — always
+      announce "Delegating to {agent} because {reason}" first.
+
+  - name: synthesize_response
+    description: >
+      After all agents return, synthesize a single coherent response.
+      Do not paste raw subagent output verbatim.

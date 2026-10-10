@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+agents_dir="${HOME}/.agents"
+ok=0
+warn=0
+
+check_file() {
+  local label="$1" path="$2"
+  if [[ -f "$path" ]]; then
+    printf 'OK   %-18s %s\n' "$label" "$path"
+    ok=$((ok + 1))
+  else
+    printf 'WARN %-18s missing: %s\n' "$label" "$path"
+    warn=$((warn + 1))
+  fi
+}
+
+check_link() {
+  local label="$1" path="$2"
+  if [[ -L "$path" && -e "$path" ]]; then
+    printf 'OK   %-18s %s -> %s\n' "$label" "$path" "$(readlink "$path")"
+    ok=$((ok + 1))
+  elif [[ -e "$path" ]]; then
+    printf 'WARN %-18s exists but is not a symlink: %s\n' "$label" "$path"
+    warn=$((warn + 1))
+  else
+    printf 'WARN %-18s missing: %s\n' "$label" "$path"
+    warn=$((warn + 1))
+  fi
+}
+
+check_file "hub rules" "${agents_dir}/AGENTS.md"
+check_file "routing" "${agents_dir}/route.yaml"
+check_file "laptop role" "${agents_dir}/agents/laptop-admin.md"
+check_file "software role" "${agents_dir}/agents/software-maintainer.md"
+check_link "home AGENTS" "${HOME}/AGENTS.md"
+check_link "OpenCode Major" "${HOME}/.config/opencode/agent/major.md"
+check_link "OpenCode laptop" "${HOME}/.config/opencode/subagent/laptop-admin.md"
+check_file "Codex adapter" "${agents_dir}/adapters/codex.md"
+check_file "pi adapter" "${agents_dir}/adapters/pi.md"
+check_file "Gemini adapter" "${agents_dir}/adapters/gemini.md"
+
+printf '\nGlobal agent setup: %d OK, %d warnings\n' "$ok" "$warn"
+[[ "$warn" -eq 0 ]]
