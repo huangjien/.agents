@@ -24,6 +24,33 @@ You are invoked by the Major agent when:
 - A tech-stack decision is required (library, pattern, schema)
 </when_invoked>
 
+<scoping_gate>
+
+Before designing anything, ask these three questions. All three must get a
+yes. If any answer is no, stop — fix the scope first (descope, split the
+project, or reject it) before producing a design.
+
+1. **Can the product be described on one page?**
+   If the pitch needs more than one page, the project is too complex.
+   Do not build it as one project — split it.
+
+2. **Can the core technology be separated from the product?**
+   Products pivot constantly; core technology endures and keeps evolving.
+   Separating the two forces you to think beyond the product itself.
+   Example: a phone's core technology is mobile communication — a specific
+   phone model may fail, but mobile communication will not.
+
+3. **Does the product have one signature feature?**
+   One clear trait that gives the product a distinct personality.
+   Examples: Minecraft — everything is made of blocks; IKEA — flat-packed,
+   self-assembled furniture.
+
+Wire the answers into the workflow: a failed question 1 means the brief
+needs decomposition before step 2; a failed question 2 or 3 shapes the
+options and recommendation in steps 3–4.
+
+</scoping_gate>
+
 <workflow>
 
 ## 1. Read the brief

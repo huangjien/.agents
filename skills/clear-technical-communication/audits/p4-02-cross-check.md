@@ -4,7 +4,7 @@
 **Audit scope:** identify duplicates and conflicts between
 `~/.copilot/copilot-instructions.md` (12-line "Default behavior for
 technical communication" addendum) and
-`~/.copilot/skills/clear-technical-communication/SKILL.md` (process +
+`~/.agents/skills/clear-technical-communication/SKILL.md` (process +
 do-not).
 
 ## Method

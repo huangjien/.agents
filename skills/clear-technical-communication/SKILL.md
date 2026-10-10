@@ -19,9 +19,9 @@ STE compliance.
 </objective>
 
 <execution_context>
-@~/.copilot/skills/clear-technical-communication/references/ste-inspired-writing.md
-@~/.copilot/skills/clear-technical-communication/references/representation-selection.md
-@~/.copilot/skills/clear-technical-communication/references/examples-and-evaluation.md
+@~/.agents/skills/clear-technical-communication/references/ste-inspired-writing.md
+@~/.agents/skills/clear-technical-communication/references/representation-selection.md
+@~/.agents/skills/clear-technical-communication/references/examples-and-evaluation.md
 </execution_context>
 
 <when_to_invoke>
@@ -82,7 +82,7 @@ If the invoking prompt contains neither word, default to
 
 **Step 3 — Apply STE-inspired writing discipline**
 
-@~/.copilot/skills/clear-technical-communication/references/ste-inspired-writing.md
+@~/.agents/skills/clear-technical-communication/references/ste-inspired-writing.md
 
 Key heuristics (full list in the reference):
 - Prefer common, concrete words; short, direct sentences; one main idea per sentence
@@ -97,7 +97,7 @@ Key heuristics (full list in the reference):
 
 **Step 4 — Select the representation**
 
-@~/.copilot/skills/clear-technical-communication/references/representation-selection.md
+@~/.agents/skills/clear-technical-communication/references/representation-selection.md
 
 Match the user's information goal to a representation:
 - Prose for direct answers

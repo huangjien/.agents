@@ -2,6 +2,35 @@
 
 Versions for `clear-technical-communication`. Heuristic version, not SemVer strictly.
 
+## v1.2 — 2026-10-10 — moved to canonical home
+
+- **Skill moved** from `~/.copilot/skills/clear-technical-communication/`
+  to `~/.agents/skills/clear-technical-communication/`. Reason: the
+  canonical home for all version-tracked skills on this system is
+  `~/.agents/skills/` (where the lock file lives, where
+  `update-skills` operates, where the wiki notes get linked).
+  `~/.copilot/skills/` is for personal-scope additions and tools
+  managed by other CLIs (e.g. the gsd-* suite).
+- **Lock file updated:** added `clear-technical-communication` to
+  `~/.agents/.skill-lock.json` with `source: local`, `sourceType:
+  filesystem`, `skillPath: skills/clear-technical-communication/SKILL.md`.
+  Folder hash computed with `sha1` over sorted file contents (the
+  original installer algorithm is no longer present in the tree;
+  this scheme is stable and documented).
+- **All internal path references updated** in `SKILL.md`, `README.md`,
+  `audits/p4-02-cross-check.md`, `audits/p4-04-rollback-exercise.md`,
+  `references/eval-results-2026-10-10.md`. The global
+  `~/.copilot/copilot-instructions.md` addendum also points to the
+  new path.
+- **Copilot still discovers it** — the CLI's discovery scope
+  includes both `~/.copilot/skills/` and `~/.agents/skills/`, so the
+  skill is now discoverable from its canonical home.
+- **Wiki** updated: `wiki/notes/2026-10-10-clear-tech-comm-skill.md`
+  has a v1.2 section; `wiki/logs.md` and `wiki/index.md` got a
+  corresponding entry.
+
+No content changes; pure relocation.
+
 ## v1.0 — 2026-10-10 — full MVP per design plan §14 plus extensions
 
 This release ships the full plan-deliverable set:

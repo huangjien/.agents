@@ -4,7 +4,7 @@ Copilot Chat skill + global-instructions amendment that helps an AI coding
 agent communicate technical information clearly and pick an appropriate
 representation for the task.
 
-**Current version:** v1.1 — full Plan §14 scope + 10 §11 test prompts, all 8 §13 decisions logged, P4 audits complete.
+**Current version:** v1.2 — moved to canonical home `~/.agents/skills/`. Plan §14 + v1.1 + relocation.
 
 ## Quick verification in VS Code Copilot
 
@@ -29,7 +29,7 @@ e.g., "Use the clear-technical-communication skill to explain…".
 ## File layout
 
 ```
-~/.copilot/skills/clear-technical-communication/
+~/.agents/skills/clear-technical-communication/
 ├── README.md                                    ← this file
 ├── SKILL.md                                     ← main skill (frontmatter + objective / process)
 ├── CHANGELOG.md                                 ← version history
@@ -83,7 +83,7 @@ minor = additive (new templates, new references, etc.).
 ## Uninstall
 
 ```bash
-rm -rf ~/.copilot/skills/clear-technical-communication
+rm -rf ~/.agents/skills/clear-technical-communication
 # Then in ~/.copilot/copilot-instructions.md, delete the
 # "Default behavior for technical communication" section.
 ```

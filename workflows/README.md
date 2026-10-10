@@ -15,6 +15,11 @@ For the 5 *built-in* patterns (`codebase-audit`, `deep-research`,
 | `hub-audit.js` | 5-axis parallel audit on `~/.agents/` (tool registry, post-retirement paths, role consistency, skill loader, MCP shared-docs) | Today's manual audit codified as a runnable workflow |
 | `tool-retire.js` | 5-phase tool retirement (identify → absorb → slim → drop → verify) | `PAT-20261010-absorbslim-ordering` (candidate) |
 | `skill-loader-check.js` | Single-axis: each `~/.agents/skills/*/SKILL.md` has frontmatter `name:` matching its dir | `PAT-20261010-skill-renamer-broke-frontmatter` (promoted) |
+| `plan-execute.js` | Pattern: Plan-and-Execute — planner → dependency-ordered execution (parallel batches) → evaluation → bounded replan | Taxonomy: Planning |
+| `chain-draft.js` | Pattern: Prompt Chaining — analyze → draft → review → finalize for artifacts | Taxonomy: Workflow |
+| `fan-out-compare.js` | Pattern: Parallelization — one question, N independent angles, reconciled synthesis | Taxonomy: Workflow |
+| `orchestrate-project.js` | Pattern: Orchestrator-Workers — decompose a project into workstreams, autonomous workers, integrator merges | Taxonomy: Multi-agent |
+| `critic-loop.js` | Pattern: Evaluator-Optimizer — generate, evaluate vs explicit criteria, revise; rounds bounded (default 3, cap 5) | Taxonomy: Quality control |
 
 ## How a file is structured
 
@@ -104,3 +109,45 @@ skill trigger? If yes, prefer the skill (it's loaded as context, not
 spawned as a subprocess). Reach for a workflow only when you need
 **explicit multi-agent coordination** that the single-agent load
 path can't do, like parallel reviewers or phased verification.
+
+## Pattern taxonomy — which pattern lives where
+
+The 8 canonical agent patterns (per Anthropic's workflow taxonomy) map
+onto this repo like this. Not every pattern should be a workflow file:
+
+| Category | Pattern | Where it lives in this repo |
+|---|---|---|
+| Agent loop | ReAct | Inside every `agent()` call — not a separate workflow |
+| Planning | Plan-and-Execute | `plan-execute.js` |
+| Workflow | Prompt Chaining | `chain-draft.js` |
+| Workflow | Routing | `major` agent + `route.yaml` — the hub's core mechanism, don't duplicate it |
+| Workflow | Parallelization | `fan-out-compare.js` (and `parallel()` inside the others) |
+| Multi-agent | Orchestrator-Workers | `orchestrate-project.js` (and Major itself, hub-level) |
+| Quality control | Evaluator-Optimizer | `critic-loop.js` (and the Verify phase in `tool-retire.js`) |
+| Control | Human-in-the-Loop | Convention: a workflow that reaches a consequential decision returns `{ status: "needs_approval", decision_request }` and **stops**. The caller decides, then re-invokes with the outcome in `args`. (See also the `review-work` skill.) |
+
+Two distinctions that keep the taxonomy honest:
+
+- **Planning ≠ execution.** `plan-execute.js` revises the plan when
+  results invalidate it; `chain-draft.js` fixes the stages in advance.
+- **ReAct composes with everything.** Each step, worker, or branch in
+  every workflow above runs its own ReAct loop internally. ReAct is not
+  the opposite of Plan-and-Execute — it is the engine inside it.
+
+### Selector (start light)
+
+Default to a single agent + a quality gate. Add machinery only when the
+task shape demands it:
+
+| Task shape | Reach for |
+|---|---|
+| Steps have dependencies, may need revision | `plan-execute.js` |
+| Fixed stages, each transforms the last output | `chain-draft.js` |
+| Independent angles on one question | `fan-out-compare.js` |
+| Genuinely distinct workstreams in one project | `orchestrate-project.js` |
+| Output quality justifies bounded revision rounds | `critic-loop.js` |
+| A consequential decision must be approved | HITL convention above (return and stop) |
+
+Add parallelism, replanning, or extra critic rounds only when testing
+shows a measurable benefit — complexity here costs tokens and failure
+modes, not just lines.

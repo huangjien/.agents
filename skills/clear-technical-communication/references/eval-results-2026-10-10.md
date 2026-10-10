@@ -2,7 +2,7 @@
 
 Actual Copilot CLI runs of the 10 §11 test prompts. Outputs captured from
 `copilot -p "<prompt>" --silent` against the skill at
-`~/.copilot/skills/clear-technical-communication/`.
+`~/.agents/skills/clear-technical-communication/`.
 
 ## How the run was done
 

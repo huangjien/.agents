@@ -11,7 +11,7 @@ to inspect.
 ## The documented rollback recipe (from `README.md`)
 
 ```bash
-rm -rf ~/.copilot/skills/clear-technical-communication
+rm -rf ~/.agents/skills/clear-technical-communication
 # Then in ~/.copilot/copilot-instructions.md, delete the
 # "Default behavior for technical communication" section.
 ```
@@ -20,7 +20,7 @@ rm -rf ~/.copilot/skills/clear-technical-communication
 
 | Step | Action | Result |
 |---|---|---|
-| 1. Confirm skill dir is self-contained | `find ~/.copilot/skills/clear-technical-communication -type f \| wc -l` | 13 files, no symlinks, no dependencies elsewhere |
+| 1. Confirm skill dir is self-contained | `find ~/.agents/skills/clear-technical-communication -type f \| wc -l` | 13 files, no symlinks, no dependencies elsewhere |
 | 2. Confirm addendum section is uniquely identifiable in `copilot-instructions.md` | `grep -c '^## Default behavior for technical communication' ~/.copilot/copilot-instructions.md` | **1** (unique) |
 | 3. Capture addendum size | `sed -n '/^## Default behavior for technical/,$p' ~/.copilot/copilot-instructions.md \| wc -l` | 11 lines (heading + 6 bullets + 4 connecting lines) |
 | 4. Simulate the `rm -rf` | `mv` the test copy into `/tmp/ctc-quarantine/` instead of `rm -rf` (the test harness blocks destructive `rm -rf`; functional equivalent) | OK — quarantined copy is at `/tmp/ctc-quarantine/done-rollback-test-2026-10-10/` |
@@ -41,7 +41,7 @@ The current recipe has two steps. A safer single-line version is:
 ```bash
 # Backup, rollback, restore-if-you-change-your-mind
 ts=$(date +%Y%m%d-%H%M%S)
-mv ~/.copilot/skills/clear-technical-communication \
+mv ~/.agents/skills/clear-technical-communication \
    ~/.agents/.archive/clear-tech-comm-removed-$ts
 # Remove the addendum section using a unique heading match
 python3 -c "
@@ -66,7 +66,7 @@ Restoring from the archive is straightforward:
 
 ```bash
 mv ~/.agents/.archive/clear-tech-comm-removed-$ts \
-   ~/.copilot/skills/clear-technical-communication
+   ~/.agents/skills/clear-technical-communication
 # Then re-append the addendum section (template in DECISIONS.md or
 # the wiki note).
 ```
