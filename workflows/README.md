@@ -23,9 +23,9 @@ For the 5 *built-in* patterns (`codebase-audit`, `deep-research`,
 
 ## How a file is structured
 
-The file is a top-level ES module (no `export default async function`
-wrapper — the runtime wraps the body in an async function so a bare
-top-level `return` works). Three sections:
+The file is a top-level ES module. Do not use an `export default async
+function` wrapper. The runtime wraps the body in an async function, so a
+bare top-level `return` works. Three sections:
 
 ```js
 // 1. metadata (required, first non-comment statement)
@@ -60,36 +60,36 @@ workflow({
 });
 ```
 
-**Do NOT pass a path** — the runtime tries to interpret the value as
-inline JS, hits a parse error on the first line (a `//` comment), and
-fails with `Invalid regular expression flag`. Always read the file
-first, then pass the contents.
+**Do NOT pass a path**. The runtime interprets the value as inline JS.
+It hits a parse error on the first line (a `//` comment). It fails with
+`Invalid regular expression flag`. Always read the file first, then pass
+the contents.
 
-Alternative: save the workflow once (the runtime has a "saved
-workflows" mechanism, see `~/.pi/agent/npm/node_modules/@quintinshaw/pi-dynamic-workflows/dist/workflow-saved.js`)
-and call it by `name:` thereafter.
+Alternative: save the workflow once. The runtime keeps a "saved workflows"
+mechanism (see `~/.pi/agent/npm/node_modules/@quintinshaw/pi-dynamic-workflows/dist/workflow-saved.js`).
+Then call it by `name:` thereafter.
 
 ## Conventions
 
 - Lowercase, dash-separated file names (`<verb>-<noun>.js`)
 - `meta.name` is snake_case
 - No shell-out: don't `bash exec` scripts in `~/.agents/bin/`. Compose
-  via `agent()` instead so the runner can track token budgets and
+  via `agent()` instead. Then the runner can track token budgets and
   surface failures
 - Pure JavaScript, no transpile step — the `workflow` tool runs it
   directly
-- No top-level return wrapped in a function — the runtime wraps the
-  body in `async function() { ... }`, so bare `return` at the end is
+- No top-level return wrapped in a function. The runtime wraps the
+  body in `async function() { ... }`. So a bare `return` at the end is
   the right shape (matches the example files in
   `workflow-authoring/examples/`)
 
 ## Verifying a workflow without running it
 
 `node --check` will fail with `Illegal return statement` on the
-top-level `return` because plain Node parses the file as a script
-(CommonJS) or module (ESM) and top-level return is not legal in
-either. The workflow runtime uses Node's `vm` module to evaluate,
-which *does* allow top-level return. So:
+top-level `return`. Plain Node parses the file as a script (CommonJS) or
+module (ESM). Top-level return is not legal in either. The workflow
+runtime uses Node's `vm` module to evaluate. That module does allow
+top-level return. So:
 
 - `node --check file.js` will always fail on these files — that's a
   tooling limitation, not a real bug
@@ -105,10 +105,10 @@ which *does* allow top-level return. So:
   invoked
 
 If you're tempted to write a workflow, ask: could this also be a
-skill trigger? If yes, prefer the skill (it's loaded as context, not
-spawned as a subprocess). Reach for a workflow only when you need
-**explicit multi-agent coordination** that the single-agent load
-path can't do, like parallel reviewers or phased verification.
+skill trigger? If yes, prefer the skill. It loads as context, not as a
+subprocess. Use a workflow only when you need **explicit multi-agent
+coordination**. The single-agent load path cannot do it — for example,
+parallel reviewers or phased verification.
 
 ## Pattern taxonomy — which pattern lives where
 
@@ -149,16 +149,16 @@ task shape demands it:
 | A consequential decision must be approved | HITL convention above (return and stop) |
 
 Add parallelism, replanning, or extra critic rounds only when testing
-shows a measurable benefit — complexity here costs tokens and failure
+shows a measurable benefit. Complexity here costs tokens and failure
 modes, not just lines.
 
 ### Laya gate (fast pre-classification inside a workflow)
 
-The runtime has `fetch` (the builtin workflows already use it), so a workflow
-can gate its fan-out on a local laya decision instead of spending an
-`agent()` call. Decision shapes, thresholds, limits:
-`~/.agents/mcp/laya-decisions.md`; one-liner for shells and agent steps:
-`~/.agents/bin/laya-classify`.
+The runtime has `fetch` (the builtin workflows already use it). So a
+workflow can gate its fan-out on a local laya decision. This avoids
+spending an `agent()` call. Decision shapes, thresholds, limits:
+`~/.agents/mcp/laya-decisions.md`. One-liner for shells and agent
+steps: `~/.agents/bin/laya-classify`.
 
 ```js
 phase('Triage');
@@ -183,5 +183,5 @@ if (intent.answer_confidence < 0.6) {
 }
 ```
 
-Zero tokens, ~0.3 s warm. Cold start on a new question shape can take ~7 s —
-do not put the first call on a critical path without a warmup.
+Zero tokens, ~0.3 s warm. Cold start on a new question shape can take
+~7 s. Do not put the first call on a critical path without a warmup.

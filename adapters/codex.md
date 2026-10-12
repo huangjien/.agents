@@ -8,4 +8,4 @@ Use the shared agent system at `~/.agents/` as the canonical source.
 - Prefer project-local `AGENTS.md` instructions when they are more specific.
 - Do not assume that a role file can spawn a subagent unless the current Codex client exposes that capability.
 
-The existing `~/.codex/AGENTS.md` is preserved because it contains Codex-specific project tooling instructions.
+The installer preserves the existing `~/.codex/AGENTS.md`. It contains Codex-specific project tooling instructions.

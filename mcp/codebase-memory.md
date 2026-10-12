@@ -5,8 +5,9 @@ description: When codebase-memory-mcp is connected, prefer its graph tools over 
 
 # Codebase Knowledge Graph (codebase-memory-mcp)
 
-When this MCP server is connected to the active tool session, prefer its
-graph tools over raw file search for code discovery.
+This MCP server exposes graph tools for code discovery. When it is
+connected to the active tool session, prefer these tools over raw
+file search.
 
 ## Priority Order
 

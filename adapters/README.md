@@ -2,7 +2,9 @@
 
 `~/.agents/` is the source of truth for shared agent behavior.
 
-There is no single native agent format shared by every client. The installer connects the common hub to each client only where the client supports a compatible global convention.
+No single native agent format fits every client. Instead, the installer
+connects the hub to each client. It does this only where the client
+supports a compatible global convention.
 
 ## Shared layers
 
@@ -17,7 +19,7 @@ There is no single native agent format shared by every client. The installer con
 
 - OpenCode receives native agent symlinks.
 - Codex, pi, Gemini, and Copilot receive instruction adapters or their native global files when available.
-- Existing tool-specific files are preserved. The installer reports conflicts instead of silently replacing them.
+- The installer preserves existing tool-specific files. It reports conflicts instead of silently replacing them.
 
 ## Add a role
 

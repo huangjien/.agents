@@ -62,8 +62,8 @@ Use the project's existing helpers / fixtures / factories.
 
 ## 4. Run and verify
 
-- Run the new tests: they should pass (if testing existing behavior) or
-  fail (if testing not-yet-implemented behavior in TDD mode).
+- Run the new tests. They should pass for existing behavior. In TDD mode
+  they should fail for behavior not yet implemented.
 - Run the full adjacent suite: confirm nothing else broke.
 
 ## 5. TDD mode (if requested)

@@ -2,9 +2,10 @@
 
 > Source: `~/.agents/copilot/copilot-instructions.md`
 >
-> **This file is not a duplicate of `~/AGENTS.md`.** It is a setup helper:
-> it tells you how to wire Copilot up against the canonical sources, and
-> what to copy into a project only when self-contained rules are needed.
+> **This file is not a duplicate of `~/AGENTS.md`.** It is a setup helper.
+> It tells you how to wire Copilot up against the canonical sources.
+> It also tells you what to copy into a project. Do this only when
+> self-contained rules are needed.
 
 ## What Copilot actually loads (in this machine)
 
@@ -24,8 +25,8 @@ right default for any project you work on locally.
 
 Only when shipping a project to people who don't have `~/.agents/`
 installed. In that case, `cp` the four files above into
-`<project>/.github/instructions/` (one `.instructions.md` per file)
-so the project carries its own copy.
+`<project>/.github/instructions/` (one `.instructions.md` per file).
+The project then carries its own copy.
 
 Don't paste this stub into a project — point collaborators at
 `~/AGENTS.md`-style rules by referencing the canonical sources by URL.

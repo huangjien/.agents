@@ -99,9 +99,9 @@ Two modes:
 
 **`goal: find_root_cause_only`** — return diagnosis, don't fix.
 
-**`goal: find_and_fix`** (default) — apply the smallest possible change
-that addresses the root cause. Verify by reproducing the original failure
-case and confirming it now passes.
+**`goal: find_and_fix`** (default) — apply the smallest change that
+addresses the root cause. Reproduce the original failure case. Confirm
+that it now passes.
 
 ## Phase 6 — Verify
 

@@ -12,7 +12,8 @@ metadata:
 
 Fast (~0.3 s warm, zero tokens, CPU) classification-shaped decisions from the
 local laya daemon. Full decision shapes, thresholds, and limits live in
-`~/.agents/mcp/laya-decisions.md` — read that first; this skill is the trigger.
+`~/.agents/mcp/laya-decisions.md` — read that first. This skill is the
+trigger.
 
 ## Quick path
 

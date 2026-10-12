@@ -12,17 +12,17 @@ classification-shaped and does not need reasoning.
 
 ## When to use it
 
-- **Intent triage / routing pre-check** — classify a prompt into a fixed set
-  of intents (e.g. the 9 intents in `~/.agents/route.yaml`) before dispatch.
-  Keyword matching mis-routes prompts like "why is X popular?" to debugging;
-  laya gets these right.
+- **Intent triage / routing pre-check** — classify a prompt into a fixed
+  set of intents before dispatch (e.g. the 9 in `~/.agents/route.yaml`).
+  Keyword matching mis-routes prompts like "why is X popular?" to debugging.
+  Laya gets these right.
 - **Binary gates** — "is this smalltalk?", "is this urgent?", "does this
   request contain credentials?" (`noul` questions).
 - **Severity / difficulty scoring** — ordered levels in one pass (`score`).
 - **Guardrails / moderation** — via `laya_preset` (`moderation`, `guard`).
 
-Per AGENTS.md Part 1 rule 5: never spend an LLM call on a decision laya can
-make deterministically and locally.
+Per AGENTS.md Part 1 rule 5: never spend an LLM call on a deterministic
+local laya decision.
 
 ## Tool priority
 

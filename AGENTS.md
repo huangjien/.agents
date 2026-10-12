@@ -7,8 +7,8 @@
 
 This file has two responsibilities:
 
-1. **Universal engineering standards** — apply to *every* agent, in *every* tool,
-   whether it's Major, a delegated subagent, or a single-agent emulator.
+1. **Universal engineering standards** — apply to *every* agent, in *every*
+   tool. Covers Major, delegated subagents, and single-agent emulators alike.
 2. **The Major orchestrator system** — how the OpenCode/Copilot entry
    point classifies intent and dispatches to seven specialists.
 
@@ -96,6 +96,8 @@ The test: Every changed line should trace directly to the user's request.
 - Follow the patterns already in use, even if a "better" pattern exists.
 - Do not introduce new architectural styles without explicit approval.
 - When in Rome, code as the Romans do.
+- Repo has no lint/format tooling of its own → follow `~/.agents/STYLE.md`
+  (hub default: naming, size caps, patterns, commit style).
 
 ## Verification — before you claim done
 
@@ -126,10 +128,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Never delegate branching, validation, or numeric logic to an LLM call.
 - If a decision can be expressed as an `if` statement, write the `if` statement.
 - LLM output is probabilistic; deterministic outcomes require deterministic code.
-- Classification-shaped decisions (intent triage, routing pre-checks, yes/no
-  gates, severity scoring) → prefer the local laya engine when reachable
-  (`laya_predict` MCP tool or `curl -s localhost:8019/v1/systemone`); it is
-  fast (~0.3 s), calibrated, and costs zero tokens. See `mcp/laya-decisions.md`.
+- Classification-shaped decisions → prefer the local laya engine when
+  reachable. That covers intent triage, routing pre-checks, yes/no gates, and
+  severity scoring. Use `laya_predict` (MCP) or
+  `curl -s localhost:8019/v1/systemone`. It is fast (~0.3 s), calibrated, and
+  costs zero tokens. See `mcp/laya-decisions.md`.
 
 ### 9. Tests Are Mandatory, but Passing Tests Are Not Sufficient
 
@@ -139,14 +142,46 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Look for tests that pass regardless of implementation (e.g., mocking everything).
 - Coverage percentage is a signal, not a guarantee. Read the test code.
 
+**Scope — what is mandatory per change (test pyramid):**
+
+- **Unit tests**: mandatory for every changed function/module containing logic
+  (branches, transforms, boundaries, error paths).
+- **Integration tests**: mandatory when the change crosses a process, API, or
+  storage boundary.
+- **Smoke**: one exercise of the real surface (run the CLI, open the page) for
+  any user-facing change — rule 13 already requires this.
+- Docs-only, config-only, and pure-formatting changes are exempt.
+
+**Test-first (TDD) tiers:**
+
+- **Bug fixes**: strict red-green — a failing test reproducing the bug exists
+  BEFORE the fix lands (rule 4 made this a goal; it is a requirement).
+- **Features**: write the test first when the interface/output is specifiable
+  up front. Exploratory code may go test-after, but its tests land in the same
+  change — never in a "tests later" commit.
+- Never shape a test to match broken behavior; if the test disagrees with the
+  spec, the spec conversation happens first.
+
+**Coverage reporting:**
+
+- After running tests on a change, report coverage **of the changed files**,
+  not the repo-wide number.
+- A coverage drop on changed files requires a one-sentence justification.
+- A repo's own thresholds (e.g. `quality-verification` config: 85% total /
+  70% per file defaults) override these reporting rules when stricter.
+
 ### 13. Run, Don't Assume
 
 **A command you didn't execute is a claim you can't make. Verification means execution, not reasoning.**
 
-- Never report "tests pass", "it builds", or "lint is clean" without actually running the relevant command and reading its real output.
+- Never say "tests pass", "it builds", or "lint is clean" unless you ran the
+  command and read its real output.
 - Never claim a fix works because it "looks correct" — run it.
-- If you cannot run the verification (no toolchain, no permissions), say so explicitly: "I could not execute this — please verify."
-- Prefer the repo's own scripts (`Makefile`, `package.json` scripts, `tox`, `cargo make`) over ad-hoc commands — they encode the project's real definition of "done".
+- Cannot run the verification (no toolchain, no permissions)? Say so:
+  "I could not execute this — please verify."
+- Prefer the repo's own scripts (`Makefile`, `package.json`, `tox`,
+  `cargo make`) over ad-hoc commands. They encode the project's definition
+  of "done".
 
 ## Operations — across the session
 
@@ -218,7 +253,8 @@ Prose is not always the best format. Pick whichever minimizes the reader's cogni
 - Never hardcode API keys, tokens, passwords, private keys, or connection strings in source.
 - Never paste real secrets into code, commits, comments, or documentation — not even in "example" files unless explicitly instructed. Prefer `<placeholder>` / env var references.
 - Never stage or commit `.env`, credential files, or `*.pem` / `id_rsa`-style files. Check `.gitignore` first.
-- If you discover an already-committed secret, STOP and flag it immediately for rotation — do not just delete the line (history retains it).
+- Discover an already-committed secret? STOP. Flag it for rotation. Do not
+  just delete the line — the history keeps it.
 
 ### 15. Git Is Manual and Explicit
 
@@ -226,15 +262,20 @@ Prose is not always the best format. Pick whichever minimizes the reader's cogni
 
 - Do not `git commit`, `git push`, open PRs, or create branches unless the user explicitly asks.
 - Never force-push, amend, rebase across shared branches, or rewrite history without an explicit request.
-- When asked to commit: stage only the files relevant to the task, never `git add .` blindly; write a concise message matching repo style.
+- When asked to commit, stage only the files relevant to the task. Never
+  `git add .` blindly. Write a concise message that matches the repo style.
 - Before committing, inspect `git status` and `git diff` to confirm exactly what is being staged.
 
 ### 16. Confirm Destructive Operations
 
 **Irreversible actions get a checkpoint. Reversible mistakes are cheap; irreversible ones are not.**
 
-- Pause and confirm before: deleting files you didn't create, dropping DB tables/columns, running destructive migrations (`DROP`, `TRUNCATE`), `rm -rf`, overwriting uncommitted work, or mass find-and-replace across the repo.
-- Make changes reversible by default: prefer a new file or function over mutating an existing critical one; prefer a migration with a down/rollback path.
+- Pause and confirm before any irreversible action. Examples: deleting files
+  you did not create, dropping DB tables or columns, destructive migrations
+  (`DROP`, `TRUNCATE`), `rm -rf`, overwriting uncommitted work, mass
+  find-and-replace.
+- Make changes reversible by default. Prefer a new file or function over
+  mutating a critical one. Prefer a migration with a down/rollback path.
 - If a destructive step is necessary but risky, describe what will happen and ask for confirmation first.
 
 ---
@@ -282,11 +323,12 @@ Full routing table in [`route.yaml`](./route.yaml).
 When a user sends a message:
 
 1. **Load routing rules** from `~/.agents/route.yaml`.
-2. **Pre-classify with laya when reachable** — one `choice` question over the
-   route intents plus a `noul` smalltalk gate, via the local decision engine
-   (`laya_predict` MCP tool or `curl -s localhost:8019/v1/systemone`).
-   `answer_confidence >= 0.6` → use the laya intent; otherwise fall back to
-   keyword matching. Payload templates: `mcp/laya-decisions.md`.
+2. **Pre-classify with laya when reachable.** Ask one `choice` question over
+   the route intents. Ask one `noul` smalltalk gate with it. Use the local
+   decision engine (`laya_predict` MCP tool or
+   `curl -s localhost:8019/v1/systemone`). `answer_confidence >= 0.6` → use
+   the laya intent; otherwise fall back to keyword matching. Payload
+   templates: `mcp/laya-decisions.md`.
 3. **Classify intent** by matching the message against each route's `triggers`.
 4. **Decide**:
    - **Simple / no match** (greetings, identity, clarifications, <10 words) →
@@ -321,7 +363,7 @@ When a user sends a message:
 | **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Codex-specific MCP/tool adapters. |
 | **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Gemini-specific MCP/tool adapters. |
 
-**Multi-agent spectrum.** Tools differ in *how* they delegate, not *whether* they can. OpenCode runs subagents as actual subprocesses (different models per agent, fully isolated contexts, hardest setup). pi spawns sub-agents in isolated contexts within the same session (`subagent` / `workflow` tools). VSCode Copilot, with the **role definitions at `~/.agents/` plus symlinks at `~/.copilot/agents/`**, lets the user pick any agent from the chat dropdown; picking `major` uses the `agent` tool to dispatch to specialists in fresh contexts. Codex and Gemini stay as single-agent emulators reading the routing table from `route.yaml`. The routing rules in `route.yaml` are the contract regardless of mechanism.
+**Multi-agent spectrum.** Tools differ in *how* they delegate, not *whether* they can. OpenCode runs subagents as actual subprocesses (different models per agent, fully isolated contexts, hardest setup). pi spawns sub-agents in isolated contexts within the same session (`subagent` / `workflow` tools). VSCode Copilot exposes the same **role definitions at `~/.agents/`** via symlinks at `~/.copilot/agents/`. The user picks any agent from the chat dropdown. Picking `major` dispatches to specialists in fresh contexts with the `agent` tool. Codex and Gemini stay as single-agent emulators reading the routing table from `route.yaml`. The routing rules in `route.yaml` are the contract regardless of mechanism.
 
 ---
 
@@ -393,9 +435,9 @@ When a user sends a message:
 Skills live under `~/.agents/skills/<name>/SKILL.md` and are auto-loaded by pi,
 OpenCode, Copilot, Codex, and Gemini based on the `description:` frontmatter. Adding a
 skill = dropping a directory under `~/.agents/skills/`. The frontmatter `name:`
-must be byte-identical to the directory name (VS Code silently drops skills
-whose names don't match the dir — see wiki pattern
-`PAT-20260906-skill-name-dir-mismatch`).
+must be byte-identical to the directory name. VS Code silently drops skills
+whose names don't match the dir. See wiki pattern
+`PAT-20260906-skill-name-dir-mismatch`.
 
 Notable skills:
 
@@ -473,8 +515,8 @@ The older style was flat milestone files at the repo root (or any
 single directory without `vX.Y/` subdirs). That style doesn't drive
 `sync_version.sh` cleanly because each flat file needs hand-curated
 ordering, and the version bump becomes guesswork. New milestones
-go under `docs/plans/vX.Y/` per rules 1–4 above. When migrating
-older flat-layout docs, move each into its correct `vX.Y/` directory
-based on which milestone it covers, then move the originals under
+go under `docs/plans/vX.Y/` per rules 1–4 above. When you migrate older
+flat-layout docs, move each into its correct `vX.Y/` directory. Base the
+choice on which milestone it covers. Then move the originals under
 `_archive/`. Treat any pre-existing flat-layout file as read-only
 until it has been migrated to a `vX.Y/` directory.

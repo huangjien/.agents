@@ -1,8 +1,8 @@
 # Major Agent System
 
-A cross-tool agent routing system with one entry point (**Major**) that
-classifies user intent and dispatches to **seven domain specialists** via
-routing rules in [`route.yaml`](./route.yaml).
+A cross-tool agent routing system with one entry point: **Major**. Major
+classifies user intent. It then dispatches to **seven domain specialists**
+via routing rules in [`route.yaml`](./route.yaml).
 
 `~/.agents/` is the canonical hub. Client-specific directories are adapters,
 not separate sources of truth. Clients without native subagent support use the
@@ -64,9 +64,9 @@ factoids) it handles directly.
 ### Add a new subagent (OpenCode) / specialist (Copilot)
 
 Each role file is a single source of truth for both OpenCode and VS
-Code Copilot. The YAML frontmatter is dual-consumer: OpenCode reads
-`name` / `description` / `model` / `mode`; Copilot reads `name` /
-`description` / `tools` / `color`.
+Code Copilot. The YAML frontmatter is dual-consumer. OpenCode reads `name` /
+`description` / `model` / `mode`. Copilot reads `name` / `description` /
+`tools` / `color`.
 
 1. Write `~/.agents/opencode/subagent/{name}.md` (or
    `~/.agents/agents/{name}.md` for portable roles). Copy an existing
@@ -143,15 +143,15 @@ After install, these symlinks exist:
 
 ## Skills
 
-`~/.agents/skills/` is the single source of truth for agent skills (one
-directory per skill, with a `SKILL.md` whose frontmatter `name` must match
-the directory name).
+`~/.agents/skills/` is the single source of truth for agent skills. Each
+skill gets one directory with a `SKILL.md`. Its frontmatter `name` must
+match the directory name.
 
-Discovered natively by **VS Code + GitHub Copilot** (user-level skill
+VS Code + GitHub Copilot discovers these natively (user-level skill
 location, Agent Skills support). Copilot also reads `~/.copilot/skills/`.
 
-To add a skill: create `~/.agents/skills/<name>/SKILL.md` (frontmatter
-`name: <name>` matching the directory).
+To add a skill: create `~/.agents/skills/<name>/SKILL.md`. The frontmatter
+`name: <name>` must match the directory.
 
 To add a portable role: create `~/.agents/agents/<name>.md`, run
 `~/.agents/install.sh`, then run `~/.agents/bin/verify-global-agents`.
@@ -161,21 +161,21 @@ ask for confirmation before destructive operations.
 
 ### Skill evolution wiki
 
-`~/.agents/wiki/` accumulates failure/success patterns and compiles them
+`~/.agents/wiki/` accumulates failure/success patterns. It compiles them
 into audited skill edits (adapted from WikiSkill, arXiv 2608.27454).
-The `skill-wiki` skill drives it: **record** patterns after notable
-sessions, **compile** them one atomic edit at a time, validate, and
-revert via the diffs in `wiki/skill-impact.md`. The wiki never enters
-always-on context. See `wiki/README.md`.
+The `skill-wiki` skill drives it. **Record** patterns after notable
+sessions. **Compile** them one atomic edit at a time. Validate, then
+revert via the diffs in `wiki/skill-impact.md` if needed. The wiki never
+enters always-on context. See `wiki/README.md`.
 
 Global rules live as VS Code instruction files in
-`~/.copilot/instructions/` (enabled via the
-`chat.instructionsFilesLocations` setting):
+`~/.copilot/instructions/`. Enable them via the
+`chat.instructionsFilesLocations` setting:
 
 - `gsd-protocol.instructions.md` — 万能开发协议
 
-Major orchestrator routing is loaded via `~/AGENTS.md` (which Copilot
-also auto-discovers), not via this directory.
+Copilot loads Major orchestrator routing via `~/AGENTS.md` (auto-discovered),
+not via this directory.
 
 ## Uninstall
 

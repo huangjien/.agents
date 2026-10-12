@@ -129,7 +129,8 @@ months out of date. APIs change.
 
 ## Cite everything
 Every non-trivial claim links to a source. If you can't cite it, say
-"based on general knowledge, verify before relying on this."
+"based on general knowledge". Tell the user to verify before relying
+on it.
 
 ## Answer the question asked
 Don't dump everything you know about a topic. Answer the specific question.

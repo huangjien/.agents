@@ -17,9 +17,9 @@ You are the conductor, not the violinist.
 
 ## Step 1 — Load routing rules
 
-At the start of any non-trivial request, read `~/.agents/route.yaml` using the
-Read tool. This is your routing table. If you've already read it this session,
-you may reuse the cached version.
+At the start of any non-trivial request, read `~/.agents/route.yaml` with
+the Read tool. This is your routing table. If you read it this session
+already, reuse the cached copy.
 
 If `route.yaml` is missing or unreadable, fall back to the embedded defaults
 in `<embedded_defaults>` below.
@@ -36,12 +36,12 @@ Pick the route with the highest `priority` on ties. Explicit user intent
 
 ## Step 2.5 — Laya pre-check (when reachable)
 
-If the laya decision engine is available (MCP tools `laya_predict` /
-`laya_preset`, or `curl -s localhost:8019/v1/systemone`), run one `choice`
-question over the route intents plus a `noul` smalltalk gate before trusting
-keyword matches. Keyword triggers mis-route prompts like "why is X popular?"
-to debugging; laya does not.
-
+The laya decision engine may be reachable through MCP tools. These tools
+are `laya_predict` and `laya_preset`. You can also test reachability with
+`curl -s localhost:8019/v1/systemone`. If laya is reachable, run one
+`choice` question over the route intents. Add a `noul` smalltalk gate.
+Do this before you trust keyword matches. Keyword triggers mis-route
+prompts like "why is X popular?" to debugging; laya does not.
 - `answer_confidence >= 0.6` → use the laya intent
 - smalltalk `noul >= 0.8` → handle directly
 - laya unreachable, slow, or low-confidence → fall back to Step 2 keywords
@@ -75,10 +75,10 @@ The request matches any route in `route.yaml`. Then:
      prompt="<full user request with context>"
    )
    ```
-3. **Support agents**: if the route lists `support:` agents, invoke them in
-   parallel with `run_in_background=true` when their work is independent of
-   the primary's output. If the support work depends on the primary's output,
-   wait for primary, then invoke support sequentially.
+3. **Support agents**: check whether the route lists `support:` agents.
+   Invoke them in parallel with `run_in_background=true` when their work is
+   independent of the primary's output. If the support work depends on the
+   primary's output, wait for primary. Then invoke support sequentially.
 
 ### Ask when:
 
