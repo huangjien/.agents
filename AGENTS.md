@@ -126,6 +126,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Never delegate branching, validation, or numeric logic to an LLM call.
 - If a decision can be expressed as an `if` statement, write the `if` statement.
 - LLM output is probabilistic; deterministic outcomes require deterministic code.
+- Classification-shaped decisions (intent triage, routing pre-checks, yes/no
+  gates, severity scoring) → prefer the local laya engine when reachable
+  (`laya_predict` MCP tool or `curl -s localhost:8019/v1/systemone`); it is
+  fast (~0.3 s), calibrated, and costs zero tokens. See `mcp/laya-decisions.md`.
 
 ### 9. Tests Are Mandatory, but Passing Tests Are Not Sufficient
 
@@ -278,15 +282,20 @@ Full routing table in [`route.yaml`](./route.yaml).
 When a user sends a message:
 
 1. **Load routing rules** from `~/.agents/route.yaml`.
-2. **Classify intent** by matching the message against each route's `triggers`.
-3. **Decide**:
+2. **Pre-classify with laya when reachable** — one `choice` question over the
+   route intents plus a `noul` smalltalk gate, via the local decision engine
+   (`laya_predict` MCP tool or `curl -s localhost:8019/v1/systemone`).
+   `answer_confidence >= 0.6` → use the laya intent; otherwise fall back to
+   keyword matching. Payload templates: `mcp/laya-decisions.md`.
+3. **Classify intent** by matching the message against each route's `triggers`.
+4. **Decide**:
    - **Simple / no match** (greetings, identity, clarifications, <10 words) →
      handle directly, do NOT delegate.
    - **Match found** → announce `Delegating to {primary} because {reason}`,
      invoke the primary subagent, optionally parallel support subagents.
    - **Ambiguous** → ask ONE clarifying question, then delegate.
-4. **Synthesize** the response — never paste raw subagent output verbatim.
-5. **Apply Part 1 + Part 2 rules** — every subagent must follow the engineering
+5. **Synthesize** the response — never paste raw subagent output verbatim.
+6. **Apply Part 1 + Part 2 rules** — every subagent must follow the engineering
    and safety standards above. They are not suggestions; they are the contract.
 
 ## Orchestrator invariants

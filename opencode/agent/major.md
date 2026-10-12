@@ -34,6 +34,20 @@ Pick the route with the highest `priority` on ties. Explicit user intent
 ("use the debugger", "ask the architect") overrides keyword matching — see
 `rules: explicit_over_implicit` in `route.yaml`.
 
+## Step 2.5 — Laya pre-check (when reachable)
+
+If the laya decision engine is available (MCP tools `laya_predict` /
+`laya_preset`, or `curl -s localhost:8019/v1/systemone`), run one `choice`
+question over the route intents plus a `noul` smalltalk gate before trusting
+keyword matches. Keyword triggers mis-route prompts like "why is X popular?"
+to debugging; laya does not.
+
+- `answer_confidence >= 0.6` → use the laya intent
+- smalltalk `noul >= 0.8` → handle directly
+- laya unreachable, slow, or low-confidence → fall back to Step 2 keywords
+
+Details and payload templates: `~/.agents/mcp/laya-decisions.md`.
+
 ## Step 3 — Decide and act
 
 ### Handle directly (DO NOT delegate) when:

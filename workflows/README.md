@@ -151,3 +151,37 @@ task shape demands it:
 Add parallelism, replanning, or extra critic rounds only when testing
 shows a measurable benefit — complexity here costs tokens and failure
 modes, not just lines.
+
+### Laya gate (fast pre-classification inside a workflow)
+
+The runtime has `fetch` (the builtin workflows already use it), so a workflow
+can gate its fan-out on a local laya decision instead of spending an
+`agent()` call. Decision shapes, thresholds, limits:
+`~/.agents/mcp/laya-decisions.md`; one-liner for shells and agent steps:
+`~/.agents/bin/laya-classify`.
+
+```js
+phase('Triage');
+const r = await fetch('http://127.0.0.1:8019/v1/systemone', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    state: { message: args.prompt },
+    questions: {
+      intent: {
+        type: 'choice',
+        instructions: 'What does the user want in `message`?',
+        criteria: { debugging: '...', implementation: '...', investigation: '...' },
+      },
+    },
+  }),
+}).then(x => x.json());
+
+const intent = r.answers.intent;
+if (intent.answer_confidence < 0.6) {
+  // low confidence: fall back to an agent() classification step
+}
+```
+
+Zero tokens, ~0.3 s warm. Cold start on a new question shape can take ~7 s —
+do not put the first call on a critical path without a warmup.

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# ~/.agents/bin/laya-classify — classify a prompt into the hub's route.yaml
+# intents using the local laya decision engine (daemon on 127.0.0.1:8019).
+#
+# Usage:
+#   laya-classify "why is my build failing after the upgrade?"
+#   echo "prompt" | laya-classify
+#
+# Output: "<intent> <answer_confidence>", plus "LOW-CONFIDENCE" when < 0.6
+# and "smalltalk" when the greeting/identity gate fires (noul >= 0.8).
+#
+# Exit codes: 0 ok · 1 daemon unreachable or laya error · 2 usage error
+
+set -euo pipefail
+
+URL="${LAYA_URL:-http://127.0.0.1:8019/v1/systemone}"
+
+if [[ $# -ge 1 ]]; then
+  MESSAGE="$*"
+else
+  MESSAGE="$(cat)"
+fi
+[[ -n "$MESSAGE" ]] || { echo "usage: laya-classify <prompt>" >&2; exit 2; }
+
+PAYLOAD=$(python3 - "$MESSAGE" <<'PY'
+import json, sys
+print(json.dumps({
+  "state": {"message": sys.argv[1]},
+  "questions": {
+    "intent": {
+      "type": "choice",
+      "instructions": "What does the user want in `message`?",
+      "criteria": {
+        "laptop_administration": "manage or configure this laptop, its tools, or agent clients",
+        "software_maintenance": "maintain packages, CLIs, runtimes, toolchains",
+        "debugging": "something is broken, failing, or erroring",
+        "implementation": "build, write, create, or modify code",
+        "review": "audit or check code for quality or security",
+        "architecture": "system design, planning, tech decisions",
+        "testing": "write tests or improve coverage",
+        "documentation": "write docs, READMEs, technical prose",
+        "investigation": "research, explain, understand, look into"}},
+    "smalltalk": {
+      "type": "noul",
+      "instructions": "Is `message` a greeting, identity question, or simple factoid?"}
+  }}))
+PY
+)
+
+RESP=$(curl -sS -m 10 "$URL" -H 'Content-Type: application/json' -d "$PAYLOAD") || {
+  echo "laya daemon unreachable at $URL" >&2; exit 1; }
+
+python3 - "$RESP" <<'PY'
+import json, sys
+try:
+    a = json.loads(sys.argv[1])["answers"]
+except Exception:
+    print("laya error: " + sys.argv[1][:200], file=sys.stderr); sys.exit(1)
+i, s = a["intent"], a["smalltalk"]
+conf = i["answer_confidence"]
+flags = ("LOW-CONFIDENCE" if conf < 0.6 else "") + (" smalltalk" if s["noul"] >= 0.8 else "")
+print(f'{i["choice"]} {conf:.3f} {flags}'.rstrip())
+PY
