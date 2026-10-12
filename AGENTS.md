@@ -1,7 +1,8 @@
 # AGENTS.md — Cross-Tool Engineering Standards + Major Orchestrator
 
 > **Single source of truth** for cross-tool agent behavior.
-> Lives at `~/.agents/AGENTS.md`. Symlinked to `~/AGENTS.md` for tool discovery.
+> Lives at `~/.agents/AGENTS.md` — always edit this file. The `~/AGENTS.md`
+> symlink exists only for tool discovery, never for editing.
 > Read by: **pi**, **OpenCode**, **VSCode + GitHub Copilot**, **Codex**, **Gemini**.
 
 This file has two responsibilities:
@@ -305,9 +306,9 @@ When a user sends a message:
 
 | Tool | Mechanism | Behavior |
 |------|-----------|----------|
-| **pi** | Auto-reads `~/AGENTS.md` as context file | Single-agent — follows Part 1 + Part 2 directly. Part 3 is informational. Can also delegate via `subagent` / `workflow` tools. |
+| **pi** | Auto-reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context file | Single-agent — follows Part 1 + Part 2 directly. Part 3 is informational. Can also delegate via `subagent` / `workflow` tools. |
 | **OpenCode** | Native multi-agent. `major.md` is a real agent; subagents invoked via `task()` tool | Major dispatches to actual subagent processes; each subagent reads Part 1 + Part 2. |
-| **VSCode + Copilot** | Reads `~/AGENTS.md` as context. Role definitions live at `~/.agents/opencode/subagent/<name>.md` and `~/.agents/agents/<name>.md`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | Copilot discovers 9 specialist agents via those symlinks. `major.agent.md` is a real file (not a symlink) — it's the orchestrator that uses the `agent` tool to dispatch to specialists in fresh contexts. To add a new specialist: write `~/.agents/opencode/subagent/<name>.md` with `name`, `description`, `tools`, `color` in YAML frontmatter, then add the discovery symlink. |
+| **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Role definitions live at `~/.agents/opencode/subagent/<name>.md` and `~/.agents/agents/<name>.md`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | Copilot discovers 9 specialist agents via those symlinks. `major.agent.md` is a real file (not a symlink) — it's the orchestrator that uses the `agent` tool to dispatch to specialists in fresh contexts. To add a new specialist: write `~/.agents/opencode/subagent/<name>.md` with `name`, `description`, `tools`, `color` in YAML frontmatter, then add the discovery symlink. |
 | **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Codex-specific MCP/tool adapters. |
 | **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Gemini-specific MCP/tool adapters. |
 
