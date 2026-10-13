@@ -15,6 +15,13 @@ classification-shaped and does not need reasoning.
 - **Intent triage / routing pre-check** — classify a prompt into a fixed
   set of intents before dispatch (e.g. the 9 in `~/.agents/route.yaml`).
   Keyword matching mis-routes prompts like "why is X popular?" to debugging.
+
+Two ready-made commands wrap the daemon:
+
+- `~/.agents/bin/laya-classify [--difficulty] "<prompt>"` — route intent +
+  confidence (+ difficulty tier for model picking)
+- `~/.agents/bin/laya-screen "<prompt>"` — privacy gate: credentials /
+  personal data / internal paths, all checked locally before any cloud call
   Laya gets these right.
 - **Binary gates** — "is this smalltalk?", "is this urgent?", "does this
   request contain credentials?" (`noul` questions).
@@ -37,12 +44,14 @@ local laya decision.
 Answers include calibrated `answer_confidence` (probability of the chosen
 option) and `confidence` (calibration-corrected). On low confidence:
 
-- `answer_confidence < ~0.6` → fall back to `route.yaml` keyword matching
+- `answer_confidence < 0.5` → fall back to `route.yaml` keyword matching
+- Smalltalk gate: `noul >= 0.8` → handle directly
 - Both low or distribution flat → ask one clarifying question (matches the
   Major fallback rule in `route.yaml`)
 
-Tune thresholds with `laya`'s evals CLI against your own prompts before
-trusting a cutover.
+These thresholds are eval-tuned (n=57): keywords alone 63%, laya alone 65%,
+hybrid at T=0.5 70%. See `~/.agents/evals/routing/report.md`. Re-run the eval
+after changing criteria or routes.
 
 ## When NOT to use it
 
