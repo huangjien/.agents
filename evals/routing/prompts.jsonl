@@ -1,0 +1,57 @@
+{"prompt": "configure OMP to use ~/.agents/ resources", "label": "laptop_administration", "source": "real"}
+{"prompt": "implement @docs/v0.4-video-quality-plan.md , I am going to sleep, make decisions yourself", "label": "implementation", "source": "real"}
+{"prompt": "what options do I have at style.theme ?", "label": "investigation", "source": "real"}
+{"prompt": "when I use MiniMax-M3, which is default model, how to calculate the cost?", "label": "investigation", "source": "real"}
+{"prompt": "go through current project, check what can I improve. focus on how to help users to create", "label": "review", "source": "real"}
+{"prompt": "which model using right now?", "label": "investigation", "source": "real"}
+{"prompt": "add several more options for style.theme", "label": "implementation", "source": "real"}
+{"prompt": "use 'paper-light' as default theme", "label": "implementation", "source": "real"}
+{"prompt": "hi", "label": "smalltalk", "source": "synthetic"}
+{"prompt": "hey, who are you?", "label": "smalltalk", "source": "synthetic"}
+{"prompt": "thanks, that worked", "label": "smalltalk", "source": "synthetic"}
+{"prompt": "what can you do?", "label": "smalltalk", "source": "synthetic"}
+{"prompt": "why is Kubernetes popular with platform teams?", "label": "investigation", "source": "synthetic"}
+{"prompt": "explain how the laya router picks a checkpoint", "label": "investigation", "source": "synthetic"}
+{"prompt": "where is the config for the OpenCode Major agent defined?", "label": "investigation", "source": "synthetic"}
+{"prompt": "how do I use the quality-verification skill in CI", "label": "investigation", "source": "synthetic"}
+{"prompt": "fix the crash in my pytest fixture, it broke after the upgrade", "label": "debugging", "source": "synthetic"}
+{"prompt": "the daemon suddenly stopped responding on port 8019", "label": "debugging", "source": "synthetic"}
+{"prompt": "getting a traceback when I run laya-classify, help", "label": "debugging", "source": "synthetic"}
+{"prompt": "tests used to pass, now they fail on CI, why is this happening", "label": "debugging", "source": "synthetic"}
+{"prompt": "this import doesn't work after the rename, something is wrong", "label": "debugging", "source": "synthetic"}
+{"prompt": "the app hangs when I open the settings page", "label": "debugging", "source": "synthetic"}
+{"prompt": "implement a retry wrapper with exponential backoff", "label": "implementation", "source": "synthetic"}
+{"prompt": "add support for dark mode in the settings panel", "label": "implementation", "source": "synthetic"}
+{"prompt": "write a function that normalizes Unicode filenames", "label": "implementation", "source": "synthetic"}
+{"prompt": "build a small CLI that lists stale worktrees", "label": "implementation", "source": "synthetic"}
+{"prompt": "refactor the config loader into its own module", "label": "implementation", "source": "synthetic"}
+{"prompt": "create a draft README for the evals directory", "label": "documentation", "source": "synthetic"}
+{"prompt": "update the README to document the new env vars", "label": "documentation", "source": "synthetic"}
+{"prompt": "document this function with docstrings", "label": "documentation", "source": "synthetic"}
+{"prompt": "add comments explaining the token budget logic", "label": "documentation", "source": "synthetic"}
+{"prompt": "review my pull request before I merge", "label": "review", "source": "synthetic"}
+{"prompt": "audit the auth code for security issues", "label": "review", "source": "synthetic"}
+{"prompt": "check this diff for vulnerabilities", "label": "review", "source": "synthetic"}
+{"prompt": "inspect the new module for quality problems", "label": "review", "source": "synthetic"}
+{"prompt": "is this SQL injection safe?", "label": "review", "source": "synthetic"}
+{"prompt": "add tests for the new classifier", "label": "testing", "source": "synthetic"}
+{"prompt": "improve coverage of the router module", "label": "testing", "source": "synthetic"}
+{"prompt": "write unit tests for the boundary cases in parse_args", "label": "testing", "source": "synthetic"}
+{"prompt": "how should I structure the plugin system for extensibility?", "label": "architecture", "source": "synthetic"}
+{"prompt": "design a caching layer that scales across regions", "label": "architecture", "source": "synthetic"}
+{"prompt": "should I use a queue or a cron job for nightly syncs?", "label": "architecture", "source": "synthetic"}
+{"prompt": "plan the migration off the legacy database", "label": "architecture", "source": "synthetic"}
+{"prompt": "help me decide between SQLite and Postgres for this workload", "label": "architecture", "source": "synthetic"}
+{"prompt": "set up my laptop for the new project", "label": "laptop_administration", "source": "synthetic"}
+{"prompt": "my disk is almost full, clean it up safely", "label": "laptop_administration", "source": "synthetic"}
+{"prompt": "uninstall the old homebrew python and fix the PATH", "label": "laptop_administration", "source": "synthetic"}
+{"prompt": "configure the shell defaults for the agent tools", "label": "laptop_administration", "source": "synthetic"}
+{"prompt": "install an MCP server for the Codex client", "label": "laptop_administration", "source": "synthetic"}
+{"prompt": "upgrade the rustup toolchain to the latest stable", "label": "software_maintenance", "source": "synthetic"}
+{"prompt": "the pnpm dependency tree is broken after the update", "label": "software_maintenance", "source": "synthetic"}
+{"prompt": "install a package for parsing TOML in the laya venv", "label": "software_maintenance", "source": "synthetic"}
+{"prompt": "update my CLI tools to the newest versions", "label": "software_maintenance", "source": "synthetic"}
+{"prompt": "which npm runtime works best with this package?", "label": "software_maintenance", "source": "synthetic"}
+{"prompt": "analyze the startup performance of the workflow runner", "label": "investigation", "source": "synthetic"}
+{"prompt": "find out why the docs build regressed last week", "label": "investigation", "source": "synthetic"}
+{"prompt": "I want to understand the evaluation loop in evals_cli", "label": "investigation", "source": "synthetic"}
