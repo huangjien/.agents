@@ -119,6 +119,7 @@ Match the user's information goal to a representation:
 - Examples when they add value
 - Separate facts, assumptions, recommendations, and open questions when the distinction matters
 - For plans: identifiable tasks, owners/role placeholders, dependencies, deliverables, acceptance criteria when requested
+- **When asking a clarifying question for a substantial artifact (a long doc, an interactive page, a video outline, a large diagram), pair the question with a small inline alternative** — a one-paragraph recommendation, a 3-row table, a sketched outline, or a one-sentence starting point the user can iterate on. Clarifying questions are not a substitute for output; they are a way to improve the next iteration. (Without the alternative, the completeness dimension of the rubric drops below the threshold for substantial artifacts.)
 
 **Step 6 — Run the quality gate**
 

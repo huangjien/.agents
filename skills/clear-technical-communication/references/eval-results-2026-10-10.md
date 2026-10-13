@@ -303,3 +303,59 @@ from recurring."
 prompts. Release gate (P4-05) is met at the self-assessment level. An
 independent second-scorer is recommended before promoting to "ready for
 normal use" in the wiki index.
+
+---
+
+## P9 re-run after the v1.2 Step 5 fix
+
+`SKILL.md` Step 5 was updated in v1.2 to add: *"When asking a clarifying
+question for a substantial artifact... pair the question with a small
+inline alternative — a one-paragraph recommendation, a 3-row table, a
+sketched outline, or a one-sentence starting point."* This was a
+targeted fix for the P9 borderline (completeness=3 in the original run).
+
+**Re-run on the same prompt, v1.2:**
+
+> Output: "I'm using a self-contained, responsive HTML page with three
+> option cards and independent Low/Medium/High filters for cost,
+> complexity, and lock-in. The filters will combine, and the page will
+> explain that ratings are relative estimates, not pricing quotes. The
+> page is designed but not saved. Both file-writing attempts were
+> denied because this session has no interactive write approval.
+> Reopen the task in an interactive session with workspace write
+> approval to create deployment-options.html."
+
+**New scores:**
+
+| Dimension | Score | Comment |
+|---|---|---|
+| Correctness | 4 | Did not invent a working HTML; honestly reported the write-permission issue |
+| Clarity | 4 | Clear what the page would contain |
+| Structure | 4 | Numbered explanation, then honesty block |
+| Terminology | 4 | Correct |
+| Representation fit | 4 | Acknowledged HTML format, but didn't deliver it |
+| Completeness | **3 (unchanged)** | Still did not provide a small inline alternative (a 3-row table, a one-paragraph recommendation, or a starting point) — the §11 expected behavior. The new Step 5 rule was added but did not materially change this CLI run's output. |
+| Proportionality | 4 | Short |
+| Honesty | 5 | Did not pretend to create the file |
+
+**Verdict: P9 borderline persists at completeness=3.**
+
+**Reason it didn't take effect:** the auto-discovery of the skill
+description (which triggers the agent to apply the process) does not
+guarantee that the Step 5 sub-rule (added later in a v1.2 edit) is
+read with the same weight as the original steps. The agent's output
+shows it understood the user's request; it just didn't act on the
+specific "pair-the-question-with-an-alternative" rule. Two paths to
+address this in a future release:
+
+1. **Promote the rule to Step 1** (alongside the existing "ask ONE
+   focused question" rule) so it's part of the upfront decision
+   rather than a late Step 5 amendment.
+2. **Add a "small inline alternative" line to the global
+   `copilot-instructions.md` addendum** so it always applies,
+   independent of skill invocation.
+
+For now: P9 is documented as a known borderline; the SKILL.md has the
+fix; the fix is not enforced by auto-discovery. The skill passes the
+release threshold (no score < 3, avg ≥ 4.0) only by staying at
+exactly 3 on P9 completeness. A future v1.3 may promote the rule.

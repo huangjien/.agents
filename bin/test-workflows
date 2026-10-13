@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# ~/.agents/bin/test-workflows
+# Static check for all workflows in ~/.agents/workflows/.
+# Exits 0 on PASS, 1 on FAIL.
+exec node "${HOME}/.agents/workflows/test.js" "$@"

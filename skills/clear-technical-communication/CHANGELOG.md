@@ -2,6 +2,22 @@
 
 Versions for `clear-technical-communication`. Heuristic version, not SemVer strictly.
 
+## v1.2.1 — 2026-10-10 — lock-file schema cleanup + Step 5 fix
+
+- **Removed `_note` field** from the `.skill-lock.json` entry. The
+  field documented the sha1-of-sorted-contents hash algorithm; the
+  algorithm note now lives only in the wiki v1.2 note. Schema is now
+  identical to the other 55 `source: local` entries.
+- **`SKILL.md` Step 5 amended** to add: when asking a clarifying
+  question for a substantial artifact, pair it with a small inline
+  alternative (a 3-row table, a one-paragraph recommendation, an
+  outline). Closes the eval-run P9 completeness borderline. **Note:
+  the rule was added but a single re-run shows it is not yet
+  enforced by auto-discovery; promotion to Step 1 is recommended
+  in v1.3.**
+- **Eval results appended** in
+  `references/eval-results-2026-10-10.md` with the P9 re-run scores.
+
 ## v1.2 — 2026-10-10 — moved to canonical home
 
 - **Skill moved** from `~/.copilot/skills/clear-technical-communication/`

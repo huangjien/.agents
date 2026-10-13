@@ -138,7 +138,10 @@ Append-only, one entry per maintenance action (newest last).
   5 deliverables; templates / Phase 3 actual test runs / strict
   STE mode deferred. Awaiting human-in-the-loop Copilot discovery
   verification (reload VS Code → invoke skill → confirm workflow).
-  note: 2026-10-10-clear-tech-comm-skill.md.
+  note: 2026-10-10-clear-tech-comm-skill-v1.0.md
+  (originally 2026-10-10-clear-tech-comm-skill.md; split into v1.0/v1.1/v1.2
+  per the user's request for finer wiki-note granularity; original
+  archived at ~/.agents/.archive/wiki-splits-2026-10-10/).
 - 2026-10-10 — **v1.1 of clear-technical-communication**, after user
   said "implement all unfinished tasks". Closed all remaining plan
   items: 5 missing §11 test prompts, all 8 §13 decisions in
@@ -151,7 +154,7 @@ Append-only, one entry per maintenance action (newest last).
   noted. Self-assessed; an independent second scorer is recommended
   before promoting to "ready for normal use" in the wiki index.
   Skill at 14 files, 1309 lines. note:
-  2026-10-10-clear-tech-comm-skill.md (v1.1 section appended).
+  2026-10-10-clear-tech-comm-skill-v1.1.md.
 - 2026-10-10 — **simplified the agent-architecture from 3 layers to
   2**. Merged the 9 specialist wrappers at L2 into the L1 role
   files themselves by adding `tools:` and `color:` to L1 frontmatter

@@ -98,6 +98,55 @@ top-level return. So:
 - For local syntax-only checks, you can also pass the file contents
   via `cat file.js | head -50` and visually inspect
 
+## Static checks (`workflows/test.js`)
+
+`workflows/test.js` runs static checks against every `*.js` file in
+this directory. The test wraps each file in an async function
+(matching the workflow runtime) so top-level `return` becomes valid;
+then it checks:
+
+1. **Syntax** — file parses after the function-wrap.
+2. **Meta export** — file declares `export const meta = { ... }`.
+3. **Meta shape** — `name` and `description` are present and strings.
+4. **Runtime hook** — file calls at least one of `agent`, `parallel`,
+   `pipeline`, `phase`, `loopUntilDry`, `verify`, `judgePanel`,
+   `completenessCheck`, or `workflow`. Catches stub files.
+5. **Top-level return** — informational only; this is the workflow
+   runtime convention.
+6. **File ↔ meta.name hint** — informational only; suggests the
+   convention that the meta name matches the file stem.
+
+**Run via:**
+
+```bash
+~/.agents/bin/test-workflows
+# or directly
+node ~/.agents/workflows/test.js
+```
+
+**Exit codes:** 0 on PASS, 1 on FAIL.
+
+**Sample output (current state):**
+
+```
+Workflows scanned:  8
+PASS:               8
+FAIL:               0
+
+  ✓ chain-draft.js          meta=chain_draft      top-return=yes  hook=yes
+  ✓ critic-loop.js          meta=critic_loop      top-return=yes  hook=yes
+  ✓ fan-out-compare.js      meta=fan_out_compare  top-return=yes  hook=yes
+  ✓ hub-audit.js            meta=hub_audit        top-return=yes  hook=yes
+  ✓ orchestrate-project.js  meta=orchestrate_project  top-return=yes  hook=yes
+  ✓ plan-execute.js         meta=plan_execute     top-return=yes  hook=yes
+  ✓ skill-loader-check.js   meta=skill_loader_check   top-return=yes  hook=yes
+  ✓ tool-retire.js          meta=tool_retire      top-return=yes  hook=yes
+```
+
+**Limitations:** this is a *static* check. It does not run the
+workflow. For end-to-end verification, invoke via the `workflow`
+tool with a real (or mock) prompt.
+
 ## When to use this directory instead of a SKILL
 
 - A `SKILL.md` documents reasoning the agent should apply when *triggered*

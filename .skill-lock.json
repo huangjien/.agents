@@ -72,8 +72,7 @@
       "skillPath": "skills/clear-technical-communication/SKILL.md",
       "skillFolderHash": "6467a322a7fcc0a7ec24fec2482dd510b18c1a61",
       "installedAt": "2026-10-10T17:42:28.374017Z",
-      "updatedAt": "2026-10-10T17:42:28.374017Z",
-      "_note": "Hash computed by local installer with sha1(sorted file contents). Original installer algorithm not present in current tree; see wiki note 2026-10-10-clear-tech-comm-skill-v1.2."
+      "updatedAt": "2026-10-10T17:42:28.374017Z"
     },
     "code-review": {
       "source": "local",
