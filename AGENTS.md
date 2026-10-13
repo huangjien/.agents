@@ -323,16 +323,20 @@ Full routing table in [`route.yaml`](./route.yaml).
 When a user sends a message:
 
 1. **Load routing rules** from `~/.agents/route.yaml`.
-2. **Pre-classify with laya when reachable.** Ask one `choice` question over
-   the route intents. Ask one `noul` smalltalk gate with it. Use the local
-   decision engine (`laya_predict` MCP tool or
-   `curl -s localhost:8019/v1/systemone`). `answer_confidence >= 0.6` → use
-   the laya intent; otherwise fall back to keyword matching. Payload
-   templates: `mcp/laya-decisions.md`.
-3. **Classify intent** by matching the message against each route's `triggers`.
+2. **Classify with the keyword router first.** Greeting check, then
+   trigger matching (phrases beat keywords; word boundaries; priority
+   order — see the routing-rules header in `route.yaml`). On the eval
+   set this beats laya intent, so it runs first.
+3. **Fall back to laya when no trigger matched.** Ask the smalltalk gate
+   (`noul >= 0.5`) and the intent question
+   (`answer_confidence >= 0.5`) in one call. Use the local decision
+   engine: `laya_predict` MCP tool or
+   `curl -s localhost:8019/v1/systemone`. Payload templates:
+   `mcp/laya-decisions.md`.
 4. **Decide**:
-   - **Simple / no match** (greetings, identity, clarifications, <10 words) →
-     handle directly, do NOT delegate.
+   - **Simple / no match** (greetings, identity, clarifications,
+     question-shaped shorts) → handle directly or route to
+     investigation, do NOT delegate.
    - **Match found** → announce `Delegating to {primary} because {reason}`,
      invoke the primary subagent, optionally parallel support subagents.
    - **Ambiguous** → ask ONE clarifying question, then delegate.
@@ -375,9 +379,11 @@ When a user sends a message:
 ├── route.yaml                      ← routing rules (edit this to retune)
 ├── README.md                       ← setup & quick start
 ├── STYLE.md                        ← code style + testing + doc standards (applies when a repo has no linter)
-├── install.sh                      ← one-shot installer (symlinks for OpenCode + Copilot)
+├── install.sh                      ← one-shot installer (symlinks, git hooks, laya daemon, self-bootstrap)
+├── .githooks/                      ← git hooks (pre-commit runs bin/test-hub via core.hooksPath)
 ├── bin/                            ← hub CLI tools (laya-classify, laya-screen, test-hub, style-check, ...)
 ├── evals/                          ← labeled prompt sets + eval runners (routing eval: evals/routing/)
+├── laya/                           ← laya daemon LaunchAgent template (com.local.laya.plist)
 ├── opencode/
 │   ├── agent/
 │   │   └── major.md                ← Major agent definition (OpenCode; frontmatter merged so also Copilot-readable)
@@ -393,7 +399,8 @@ When a user sends a message:
 │   ├── laptop-admin.md
 │   └── software-maintainer.md
 ├── copilot/
-│   └── copilot-instructions.md     ← Copilot-specific template (mirrors Part 1+2)
+│   ├── copilot-instructions.md     ← Copilot-specific template (mirrors Part 1+2)
+│   └── major.agent.md              ← Major orchestrator template (seeds ~/.copilot/agents/major.agent.md)
 ├── mcp/                              ← shared tool-agnostic instruction modules
 │   ├── codebase-memory.md
 │   └── laya-decisions.md            ← laya local decision engine (thresholds, payloads)
@@ -403,7 +410,7 @@ When a user sends a message:
 
 (Outside this tree, but consumed by VS Code Copilot via symlinks:)
 ~/.copilot/agents/                   ← symlinks to role files; only `major.agent.md` is a real file
-    ├── major.agent.md              ← real file (no L1 equivalent — Major is Copilot-only)
+    ├── major.agent.md              ← real file; seeded from ~/.agents/copilot/major.agent.md on first install
     ├── architect.agent.md          → ~/.agents/opencode/subagent/architect.md
     ├── coder.agent.md              → ~/.agents/opencode/subagent/coder.md
     ├── ...                         (9 specialists total — symlinks)
@@ -443,6 +450,10 @@ skill = dropping a directory under `~/.agents/skills/`. The frontmatter `name:`
 must be byte-identical to the directory name. VS Code silently drops skills
 whose names don't match the dir. See wiki pattern
 `PAT-20260906-skill-name-dir-mismatch`.
+
+When a skill's guidance shapes work you delivered, append one row to
+`~/.agents/wiki/skill-usage.md` (date, skill, tool). The log drives the
+periodic skill cull — see `wiki/notes/2026-10-13-skill-cull-candidates.md`.
 
 Notable skills:
 

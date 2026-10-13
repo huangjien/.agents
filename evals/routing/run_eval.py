@@ -17,26 +17,66 @@ INTENTS = ["laptop_administration", "software_maintenance", "debugging",
            "documentation", "investigation"]
 
 # --- keyword matcher: mirrors route.yaml rules -----------------------------
+import re
 import yaml
 route = yaml.safe_load((HUB / "route.yaml").read_text())
 ROUTES = sorted(route["routes"], key=lambda r: -r.get("priority", 0))
 SUBAGENT_IDS = {a["id"] for a in route["subagents"]}
 
+GREETINGS = {"hi", "hey", "hello", "yo", "sup", "thanks", "thank", "thx",
+             "bye", "goodbye", "cheers"}
+IDENTITY_PHRASES = ["who are you", "what can you do"]
+QUESTION_STARTERS = ("what", "why", "how", "where", "which", "who", "when",
+                     "is", "are", "do", "does", "can")
+
+def _hit(trigger: str, prompt_lower: str) -> bool:
+    return re.search(r"\b" + re.escape(trigger.lower()) + r"\b",
+                     prompt_lower) is not None
+
+def _first_word(prompt: str) -> str:
+    return prompt.split()[0].lower().strip(",.!?'\"") if prompt.split() else ""
+
+def _is_greeting(prompt: str) -> bool:
+    return (_first_word(prompt) in GREETINGS
+            or any(ph in prompt.lower() for ph in IDENTITY_PHRASES))
+
 def keyword_route(prompt: str) -> str:
+    p = prompt.lower()
     words = prompt.split()
+    # phrase tier beats keyword tier; within a tier, priority wins (ROUTES
+    # is pre-sorted by descending priority)
+    for r in ROUTES:
+        for ph in r["triggers"].get("phrases", []):
+            if _hit(ph, p):
+                return r["intent"]
     for r in ROUTES:
         for kw in r["triggers"].get("keywords", []):
-            if kw.lower() in prompt.lower():
+            if _hit(kw, p):
                 return r["intent"]
-        for ph in r["triggers"].get("phrases", []):
-            if ph.lower() in prompt.lower():
-                return r["intent"]
+    if _is_greeting(prompt):
+        return "smalltalk"
     if len(words) < 10:
-        return "smalltalk"          # simple_shortcut rule
+        # simple_shortcut: question-shaped shorts are investigations
+        question = "?" in prompt or _first_word(prompt) in QUESTION_STARTERS
+        return "investigation" if question else "smalltalk"
     return route["fallback"]["intent"]  # "general" -> researcher
+
+def kw_matched(prompt: str) -> bool:
+    """True when a route trigger or the deterministic greeting check hit."""
+    p = prompt.lower()
+    for r in ROUTES:
+        for ph in r["triggers"].get("phrases", []):
+            if _hit(ph, p):
+                return True
+    for r in ROUTES:
+        for kw in r["triggers"].get("keywords", []):
+            if _hit(kw, p):
+                return True
+    return _is_greeting(prompt)
 
 # --- laya ------------------------------------------------------------------
 LAYA_URL = "http://127.0.0.1:8019/v1/systemone"
+GATE_T = 0.5   # smalltalk noul threshold (eval-tuned; non-ST max 0.13)
 CRITERIA = {
     "laptop_administration": "manage or configure this laptop, its tools, or agent clients",
     "software_maintenance": "maintain packages, CLIs, runtimes, toolchains",
@@ -58,7 +98,7 @@ def laya_route(prompt: str):
     req = urllib.request.Request(LAYA_URL, body, {"Content-Type": "application/json"})
     a = json.loads(urllib.request.urlopen(req, timeout=30).read())["answers"]
     conf = a["intent"]["answer_confidence"]
-    if a["smalltalk"]["noul"] >= 0.8:
+    if a["smalltalk"]["noul"] >= GATE_T:
         return "smalltalk", conf
     return a["intent"]["choice"], conf
 
@@ -87,15 +127,26 @@ def main():
              f"| route.yaml keywords | {kw_ok}/{n} ({100*kw_ok/n:.0f}%) |",
              f"| laya (no threshold) | {laya_ok}/{n} ({100*laya_ok/n:.0f}%) |"]
 
-    lines += ["", "## Hybrid sweep (laya when confidence >= T, else keywords)", "",
+    lines += ["", "## Laya-first hybrid (rejected: worse than keywords alone)", "",
+              "laya intent when confidence >= T, else keywords:", "",
               "| T | Accuracy |", "|---|---|"]
     best = (0, 0)
     for T in [0.4, 0.5, 0.6, 0.7, 0.8]:
-        preds = ["smalltalk" if p == "smalltalk" else (p if conf >= T else k)
-                 for p, k, conf in zip(laya_preds, kw, confs)]
+        preds = ["smalltalk" if _is_greeting(d["prompt"]) or p == "smalltalk"
+                 else (p if conf >= T else k)
+                 for d, p, k, conf in zip(data, laya_preds, kw, confs)]
         ok, _ = accuracy(preds, labels)
         lines.append(f"| {T} | {ok}/{n} ({100*ok/n:.0f}%) |")
         if ok > best[1]: best = (T, ok)
+
+    lines += ["", "## Keyword-first hybrid (production rule)", "",
+              "Keyword router when a trigger or greeting matches; otherwise",
+              "laya (smalltalk gate, then intent at `answer_confidence >= 0.5`);",
+              "otherwise the keyword result stands (question-shortcut or", "general fallback).", ""]
+    prod = [(p if (not kw_matched(d["prompt"]) and k != "smalltalk" and conf >= 0.5) else k)
+            for d, p, k, conf in zip(data, laya_preds, kw, confs)]
+    prod_ok, _ = accuracy(prod, labels)
+    lines.append(f"Accuracy: {prod_ok}/{n} ({100*prod_ok/n:.0f}%)")
 
     lines += ["", "## Keyword-router errors", ""]
     for d, p, l in zip(data, kw, labels):
@@ -104,7 +155,8 @@ def main():
     for d, p, l in zip(data, laya_preds, labels):
         if p != l: lines.append(f"- `{d['prompt'][:60]}` → laya={p}, truth={l}")
 
-    lines += ["", f"Best hybrid threshold: T={best[0]} ({best[1]}/{n})"]
+    lines += ["", f"Laya-first hybrid best: T={best[0]} ({best[1]}/{n}) — rejected.",
+              f"Production rule: keyword-first with laya fallback ({prod_ok}/{n})."]
     (HERE / "report.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines[:12])); print("...full report:", HERE / "report.md")
 

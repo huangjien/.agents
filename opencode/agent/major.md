@@ -26,25 +26,33 @@ in `<embedded_defaults>` below.
 
 ## Step 2 — Classify intent
 
-Match the user's message against each route's `triggers`:
-- `keywords`: case-insensitive substring match (any one match is enough)
-- `phrases`: case-insensitive substring match on the full phrase
+Run the deterministic checks in this order:
+1. Greeting check: first word "hi"/"hey"/"thanks"/etc. or an identity
+   phrase ("who are you", "what can you do") → handle directly.
+2. Trigger matching against each route's `triggers`:
+   - word-boundary match, case-insensitive (keywords and phrases)
+   - a `phrases` match beats any `keywords` match
+   - within a tier, the highest `priority` wins
+3. No trigger and under ~10 words: question-shaped (starts with
+   what/why/how/where/which/who/when or contains "?") → investigation;
+   otherwise handle directly.
 
-Pick the route with the highest `priority` on ties. Explicit user intent
-("use the debugger", "ask the architect") overrides keyword matching — see
-`rules: explicit_over_implicit` in `route.yaml`.
+Explicit user intent ("use the debugger", "ask the architect") overrides
+keyword matching — see `rules: explicit_over_implicit` in `route.yaml`.
 
-## Step 2.5 — Laya pre-check (when reachable)
+## Step 2.5 — Laya fallback (when nothing matched)
 
-The laya decision engine may be reachable through MCP tools. These tools
-are `laya_predict` and `laya_preset`. You can also test reachability with
-`curl -s localhost:8019/v1/systemone`. If laya is reachable, run one
-`choice` question over the route intents. Add a `noul` smalltalk gate.
-Do this before you trust keyword matches. Keyword triggers mis-route
-prompts like "why is X popular?" to debugging; laya does not.
-- `answer_confidence >= 0.6` → use the laya intent
-- smalltalk `noul >= 0.8` → handle directly
-- laya unreachable, slow, or low-confidence → fall back to Step 2 keywords
+When Step 2 produced no trigger match, consult the laya decision engine
+before settling for the fallback. Tools: `laya_predict` and `laya_preset`
+(MCP), or `curl -s localhost:8019/v1/systemone`. Ask the smalltalk gate
+and the intent `choice` question in one call:
+- smalltalk `noul >= 0.5` → handle directly
+- `answer_confidence >= 0.5` → use the laya intent
+- laya unreachable, slow, or low-confidence → keep the Step 2 result
+
+Do not consult laya when a keyword or phrase already matched. The
+evaluated keyword router is stronger than laya intent. Laya overrides
+only add errors.
 
 Details and payload templates: `~/.agents/mcp/laya-decisions.md`.
 
@@ -57,7 +65,7 @@ Details and payload templates: `~/.agents/mcp/laya-decisions.md`.
 - Clarifications about previous responses
 - Meta-questions: "what routes exist", "list agents", "show route.yaml"
 - Simple factoids answerable in one sentence
-- Requests under ~10 words matching no route
+- Non-question requests under ~10 words matching no route
 
 Answer these yourself, briefly.
 

@@ -59,19 +59,26 @@ subagents:
     tier: balanced
 
 # --- Routing rules ------------------------------------------------ --
-# Order matters: earlier routes win on tie. Trigger matching is
-# keyword OR phrase match (case-insensitive substring).
+# Order matters: earlier routes win on tie. Trigger matching:
+#   - word-boundary match, case-insensitive (keywords and phrases)
+#   - a phrase match beats any keyword match
+#   - within a tier, higher priority wins
+# Short requests (<10 words) matching no route: question-shaped
+# (starts with what/why/how/where/which/who/when or contains "?")
+# route to investigation; greetings and identity queries are
+# handled directly as smalltalk.
 routes:
   - intent: laptop_administration
     description: Manage this laptop, its configuration, installed tools, or agent clients
     triggers:
       keywords: [laptop, macOS, mac, computer, uninstall, configuration,
-                 disk, storage]
+                 configure, disk, storage]
       phrases:
         - set up my laptop
         - manage my computer
         - configure globally
         - install an agent
+        - install an MCP
         - manage agent tools
     agents:
       primary: laptop-admin
@@ -81,10 +88,11 @@ routes:
   - intent: software_maintenance
     description: Maintain developer software, package managers, CLIs, and runtimes
     triggers:
-      keywords: [package, dependency, runtime, cli, toolchain, homebrew, npm,
+      keywords: [package, dependency, runtime, toolchain, homebrew, npm,
                  pnpm, pip, rustup, upgrade]
       phrases:
         - update my tools
+        - update my CLI
         - upgrade the toolchain
         - install a package
     agents:
@@ -95,9 +103,9 @@ routes:
   - intent: debugging
     description: Something is broken, failing, erroring, or regressing
     triggers:
-      keywords: [fix, bug, error, broken, crash, failing, fails, failed,
-                 debug, diagnose, regression, traceback, exception,
-                 "doesn't work", "not working", "why is", stuck, hang]
+      keywords: [fix, bug, error, broken, crash, fail, fails, failed,
+                 failing, debug, diagnose, regression, traceback, exception,
+                 "doesn't work", "not working", stuck, hang, hangs]
       phrases:
         - something is wrong
         - used to work
@@ -119,6 +127,7 @@ routes:
         - write a function
         - generate a
         - add support for
+        - as default
         - set up
     agents:
       primary: coder
@@ -129,11 +138,12 @@ routes:
     description: Audit, check, review for quality or security
     triggers:
       keywords: [review, audit, check, lint, security, vulnerability,
-                 quality, inspect, scan]
+                 quality, inspect, scan, injection]
       phrases:
         - review my code
         - check this for
         - is this secure
+        - what can I improve
         - audit
         - look for issues
     agents:
@@ -172,12 +182,14 @@ routes:
     agents:
       primary: tester
       support: []
-    priority: 65
+    priority: 85              # above implementation: "add tests" is testing,
+                              # not a generic code change
 
   - intent: documentation
     description: Write docs, READMEs, technical prose
     triggers:
-      keywords: [document, docs, README, javadoc, docstring, explain in writing]
+      keywords: [document, documentation, README, docstring, docstrings,
+                 javadoc, "explain in writing"]
       phrases:
         - write documentation
         - document this
@@ -186,14 +198,15 @@ routes:
     agents:
       primary: doc-writer
       support: []
-    priority: 60
+    priority: 82              # above implementation: "update the README" is
+                              # documentation, not a generic code change
 
   - intent: investigation
     description: Research, explain, understand, look into
     triggers:
       keywords: [explain, understand, "how does", "why does", "what is",
-                 investigate, research, explore, find, "look into",
-                 "tell me about", analyze, "where is"]
+                 "why is", "how to", investigate, research, explore, find,
+                 "look into", "tell me about", analyze, "where is"]
       phrases:
         - I want to understand
         - look into
@@ -224,8 +237,11 @@ rules:
 
   - name: simple_shortcut
     description: >
-      Requests under ~10 words that match no route are likely simple
-      questions — handle directly instead of routing.
+      Requests under ~10 words that match no route: if question-shaped
+      (starts with what/why/how/where/which/who/when, or contains a
+      question mark) route to investigation. Greetings and identity
+      queries are handled directly. Other short unmatched requests
+      are likely simple — handle directly.
 
   - name: parallel_support
     description: >

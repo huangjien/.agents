@@ -7,6 +7,7 @@
 set -euo pipefail
 
 AGENTS_DIR="${HOME}/.agents"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENCODE_DIR="${HOME}/.config/opencode"
 VSCODE_DIR="${HOME}/.vscode"
 
@@ -55,9 +56,21 @@ mkdirp() {
 # ----- preflight ------------------------------------------------- --
 
 if [[ ! -d "$AGENTS_DIR" ]]; then
-  err "Source directory ${AGENTS_DIR} does not exist."
-  err "Clone or copy the agent system to ${AGENTS_DIR} first."
-  exit 1
+  if [[ "$SCRIPT_DIR" != "$AGENTS_DIR" && -f "${SCRIPT_DIR}/route.yaml" ]]; then
+    # Bootstrap: this script runs from a checkout elsewhere — install it.
+    log "bootstrapping ${AGENTS_DIR} from ${SCRIPT_DIR}"
+    if command -v rsync >/dev/null 2>&1; then
+      rsync -a "${SCRIPT_DIR}/" "${AGENTS_DIR}/"
+    else
+      cp -R "${SCRIPT_DIR}/." "${AGENTS_DIR}/"
+    fi
+    log "hub installed to ${AGENTS_DIR} (git history included)"
+  else
+    err "Source directory ${AGENTS_DIR} does not exist."
+    err "Copy the agents-system checkout to ${AGENTS_DIR}, or run this"
+    err "script from inside that checkout, then re-run."
+    exit 1
+  fi
 fi
 
 # ----- 1. OpenCode integration ----------------------------------- --
@@ -104,10 +117,19 @@ for src in "${AGENTS_DIR}"/opencode/subagent/*.md "${AGENTS_DIR}"/agents/*.md; d
   name="$(basename "${src%.md}")"
   link "$src" "${HOME}/.copilot/agents/${name}.agent.md"
 done
-# major.agent.md is a real file (Major is Copilot-only); only create
-# it if the user hasn't placed one already.
+# major.agent.md is a real file seeded from the repo template
+# (~/.agents/copilot/major.agent.md) on first install. An existing
+# file is left untouched — users may have customized it.
 if [[ ! -e "${HOME}/.copilot/agents/major.agent.md" ]]; then
-  warn "no ~/.copilot/agents/major.agent.md — pick a chat agent from the dropdown until you create one"
+  if [[ -f "${AGENTS_DIR}/copilot/major.agent.md" ]]; then
+    cp "${AGENTS_DIR}/copilot/major.agent.md" \
+       "${HOME}/.copilot/agents/major.agent.md"
+    log "seeded ~/.copilot/agents/major.agent.md from repo template"
+  else
+    warn "no ${AGENTS_DIR}/copilot/major.agent.md template; create the file manually"
+  fi
+else
+  info "major.agent.md present (left untouched; template: ${AGENTS_DIR}/copilot/major.agent.md)"
 fi
 
 # ----- 2. VSCode + Copilot integration --------------------------- --
@@ -144,6 +166,48 @@ info "Full docs: ~/.agents/README.md"
 info "Verify integrations: ~/.agents/bin/verify-global-agents"
 echo
 log "Done. Re-run this script any time you edit files in ~/.agents/"
+
+# ----- 4. Git hooks (repo-local) ---------------------------------- --
+
+log "=== Git hooks ==="
+if [[ -d "${AGENTS_DIR}/.git" ]]; then
+  (cd "${AGENTS_DIR}" && git config core.hooksPath .githooks)
+  log "core.hooksPath → .githooks (pre-commit runs bin/test-hub)"
+else
+  info "${AGENTS_DIR} is not a git checkout; skipping git hooks"
+fi
+
+# ----- 4b. Laya decision daemon (optional routing fallback) ------- --
+
+log "=== Laya daemon ==="
+LAYA_VENV="${HOME}/.venvs/laya"
+LAYA_PLIST_SRC="${AGENTS_DIR}/laya/com.local.laya.plist"
+LAYA_PLIST_DST="${HOME}/Library/LaunchAgents/com.local.laya.plist"
+if curl -sf -m 2 localhost:8019/health >/dev/null 2>&1; then
+  info "laya already running on :8019"
+elif [[ -x "${LAYA_VENV}/bin/laya-serve" ]]; then
+  mkdir -p "${HOME}/.laya/logs"
+  if [[ ! -f "$LAYA_PLIST_DST" && -f "$LAYA_PLIST_SRC" ]]; then
+    sed "s|__HOME__|${HOME}|g" "$LAYA_PLIST_SRC" > "$LAYA_PLIST_DST"
+    log "installed LaunchAgent: ${LAYA_PLIST_DST}"
+  fi
+  if [[ -f "$LAYA_PLIST_DST" ]]; then
+    launchctl bootstrap "gui/$(id -u)" "$LAYA_PLIST_DST" 2>/dev/null \
+      || launchctl load -w "$LAYA_PLIST_DST" 2>/dev/null || true
+    sleep 2
+    if curl -sf -m 8 localhost:8019/health >/dev/null 2>&1; then
+      log "laya started on :8019 (cold start can take ~7 s)"
+    else
+      warn "laya LaunchAgent fired but health check failed; see ~/.laya/logs/"
+    fi
+  else
+    warn "no LaunchAgent plist; start manually: ${LAYA_VENV}/bin/laya-serve"
+  fi
+else
+  warn "laya venv missing — routing falls back to keywords only (works, less accurate). To install:"
+  warn "  python3 -m venv ${LAYA_VENV} && ${LAYA_VENV}/bin/pip install laya"
+  warn "  then re-run this script to install the LaunchAgent"
+fi
 
 # ----- 5. CLI tool wrappers -------------------------------------- --
 

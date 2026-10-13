@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Pre-commit: run the hub static harness. Fast (~2 s), no network.
+# Activated by: git config core.hooksPath .githooks  (see install.sh)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+bash bin/test-hub

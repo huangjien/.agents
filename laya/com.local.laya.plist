@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.local.laya</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/.venvs/laya/bin/laya-serve</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>LAYA_HOST</key>
+        <string>127.0.0.1</string>
+        <key>LAYA_PORT</key>
+        <string>8019</string>
+        <key>LAYA_DEVICE</key>
+        <string>cpu</string>
+        <key>LAYA_PRELOAD</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>__HOME__/.venvs/laya/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>__HOME__</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>__HOME__</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.laya/logs/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.laya/logs/stderr.log</string>
+</dict>
+</plist>

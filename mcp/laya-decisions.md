@@ -41,17 +41,27 @@ local laya decision.
 
 ## Confidence handling
 
-Answers include calibrated `answer_confidence` (probability of the chosen
-option) and `confidence` (calibration-corrected). On low confidence:
+Production order (reference implementation: `evals/routing/run_eval.py`):
 
-- `answer_confidence < 0.5` → fall back to `route.yaml` keyword matching
-- Smalltalk gate: `noul >= 0.8` → handle directly
-- Both low or distribution flat → ask one clarifying question (matches the
-  Major fallback rule in `route.yaml`)
+1. Deterministic greeting check first — first word "hi"/"hey"/"thanks"
+   etc. or an identity phrase ("who are you", "what can you do") is
+   smalltalk; never spend a laya call on it.
+2. `route.yaml` keyword router (phrases beat keywords, word-boundary
+   matching, priority ordering). On the eval set it is stronger than
+   laya intent, so it runs first.
+3. No trigger matched → ask laya. Smalltalk gate `noul >= 0.5` → handle
+   directly. Else use the intent at `answer_confidence >= 0.5`. Below
+   that, the keyword result stands (question-shortcut or general →
+   researcher).
+4. Still nothing → ask one clarifying question (matches the Major
+   fallback rule in `route.yaml`).
 
-These thresholds are eval-tuned (n=57): keywords alone 63%, laya alone 65%,
-hybrid at T=0.5 70%. See `~/.agents/evals/routing/report.md`. Re-run the eval
-after changing criteria or routes.
+Eval-tuned on n=57 (2026-10-13): keywords 100% after the trigger fixes
+(was 63%), laya alone 67%, keyword-first hybrid 100%. Laya-first was
+measured and rejected — it peaked at 95% (T=0.8) because laya intent
+overrides correct keyword matches. Caveat: several trigger phrases were
+tuned on this same set. Treat 100% as an upper bound. Re-run the eval
+as real prompts accumulate. See `~/.agents/evals/routing/report.md`.
 
 ## When NOT to use it
 
