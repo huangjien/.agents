@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Check laya wiring: every client config points at an existing binary,
+and the daemon answers /health. Exit 1 on any violation."""
+import json, sys, urllib.request
+from pathlib import Path
+
+HOME = Path.home()
+BIN = HOME / ".venvs/laya/bin/laya-mcp-server"
+errors = []
+if not BIN.exists():
+    errors.append(f"MCP binary missing: {BIN}")
+
+def has_laya(path, pred):
+    try:
+        text = Path(path).read_text()
+    except FileNotFoundError:
+        errors.append(f"config missing: {path}")
+        return
+    if not pred(text):
+        errors.append(f"no laya entry in {path}")
+
+def toml_pred(t): return "[mcp_servers.laya]" in t
+def json_pred(t):
+    try:
+        return "laya" in json.loads(t).get("mcpServers", {}) or \
+               "laya" in json.loads(t).get("mcp", {})
+    except Exception:
+        return False
+
+has_laya(HOME / ".codex/config.toml", toml_pred)
+has_laya(HOME / ".config/opencode/opencode.json", json_pred)
+has_laya(HOME / ".gemini/settings.json", json_pred)
+has_laya(HOME / ".omp/agent/mcp.json", json_pred)
+has_laya(HOME / ".pi/agent/mcp.json", json_pred)
+has_laya(HOME / "Library/Application Support/Claude/claude_desktop_config.json",
+         json_pred)
+
+try:
+    h = json.loads(urllib.request.urlopen(
+        "http://127.0.0.1:8019/health", timeout=5).read())
+    if h.get("status") != "ok":
+        errors.append(f"daemon status not ok: {h.get('status')}")
+except Exception as e:
+    errors.append(f"daemon health check failed: {e}")
+
+for e in errors:
+    print(e)
+sys.exit(1 if errors else 0)

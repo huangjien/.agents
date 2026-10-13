@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""Check every skill dir has frontmatter name: matching the dir name.
+Static version of the skill-loader-check workflow. Exit 1 on mismatch."""
+import re, sys
+from pathlib import Path
+
+skills = Path.home() / ".agents" / "skills"
+errors = []
+for d in sorted(skills.iterdir()):
+    if not d.is_dir() or d.name.startswith(("_", ".")):
+        continue
+    f = d / "SKILL.md"
+    if not f.exists():
+        continue
+    m = re.search(r"^name:\s*(\S+)", f.read_text(), re.M)
+    if not m:
+        errors.append(f"{d.name}: no frontmatter name:")
+    elif m.group(1) != d.name:
+        errors.append(f"{d.name}: name: is '{m.group(1)}', dir is '{d.name}'")
+
+for e in errors:
+    print(e)
+sys.exit(1 if errors else 0)

@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""~/.agents/bin/style-check — enforce STYLE.md prose rules on hub docs.
+
+Blocking: any prose sentence over 20 words (STYLE.md, Documentation section).
+Warnings: passive-voice hits and wordy-form vocabulary.
+
+Scope: git-tracked .md files, excluding upstream-synced skills/ (except
+laya-triage), wiki history, and backups. Add --quiet to print failures only.
+"""
+import re, subprocess, sys
+from pathlib import Path
+
+HUB = Path.home() / ".agents"
+QUIET = "--quiet" in sys.argv
+
+BAD = re.compile(r"\b(utilize|utilise|prior to|in order to|carry out|"
+                 r"facilitate|commence|terminate|attempt to|is able to|"
+                 r"are able to)\b", re.I)
+PASSIVE = re.compile(r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.I)
+SKIP_PREFIX = ("|", "#", "-", "---", "+++", "<", ">")
+
+def targets():
+    out = subprocess.run(["git", "-C", str(HUB), "ls-files", "*.md"],
+                         capture_output=True, text=True).stdout.splitlines()
+    keep = []
+    for f in out:
+        if f.startswith(("wiki/", ".archive/")): continue
+        if f.startswith("skills/") and not f.startswith("skills/laya-triage/"): continue
+        if f.startswith("evals/"): continue
+        keep.append(HUB / f)
+    keep += [Path.home() / ".codex/AGENTS.md", Path.home() / ".gemini/GEMINI.md"]
+    return [p for p in keep if p.exists()]
+
+def paragraphs(text):
+    fence, cur, out = False, [], []
+    for line in text.splitlines():
+        if line.strip().startswith("```"): fence = not fence; continue
+        if fence or line.strip().startswith(SKIP_PREFIX) \
+           or re.match(r"^\w+:", line.strip()):
+            if cur: out.append(" ".join(cur)); cur = []
+            continue
+        if not line.strip():
+            if cur: out.append(" ".join(cur)); cur = []
+            continue
+        cur.append(line)
+    if cur: out.append(" ".join(cur))
+    return out
+
+def main():
+    long_total, warn_total, files = 0, 0, 0
+    for p in targets():
+        text = p.read_text()
+        bad_hits = BAD.findall(text)
+        passive = PASSIVE.findall(text)
+        longs = []
+        for para in paragraphs(text):
+            for s in re.split(r"(?<=[.!?])\s+", re.sub(r"[*`]", "", para)):
+                w = len(s.split())
+                if w > 20 and w >= 3:
+                    longs.append((w, s.strip()[:80]))
+        if longs or bad_hits or passive:
+            files += 1
+            long_total += len(longs); warn_total += len(bad_hits) + len(passive)
+            if not QUIET or longs:
+                print(f"{p.relative_to(HUB) if p.is_relative_to(HUB) else p}:")
+            for w, s in longs:
+                print(f"  LONG ({w}w): {s}")
+            if bad_hits and not QUIET:
+                print(f"  vocab warnings: {bad_hits}")
+            if passive and not QUIET:
+                print(f"  passive warnings ({len(passive)}): {passive[:4]}")
+    print(f"style-check: {long_total} long sentences (blocking), "
+          f"{warn_total} warnings")
+    sys.exit(1 if long_total else 0)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Schema check for ~/.agents/route.yaml. Exit 1 on any violation."""
+import sys
+from pathlib import Path
+import yaml
+
+route = yaml.safe_load((Path.home() / ".agents" / "route.yaml").read_text())
+ids = {a["id"] for a in route.get("subagents", [])}
+errors = []
+
+if not ids:
+    errors.append("no subagents registered")
+for r in route.get("routes", []):
+    tag = r.get("intent", "?")
+    for key in ("description", "triggers", "agents"):
+        if key not in r:
+            errors.append(f"route {tag}: missing '{key}'")
+    tr = r.get("triggers", {})
+    if not tr.get("keywords") and not tr.get("phrases"):
+        errors.append(f"route {tag}: no keywords and no phrases")
+    prim = r.get("agents", {}).get("primary")
+    if prim and prim not in ids:
+        errors.append(f"route {tag}: primary '{prim}' not in subagents")
+    for sup in r.get("agents", {}).get("support", []):
+        if sup not in ids:
+            errors.append(f"route {tag}: support '{sup}' not in subagents")
+    if not isinstance(r.get("priority", 0), int):
+        errors.append(f"route {tag}: priority must be int")
+
+fb = route.get("fallback", {}).get("agents", {}).get("primary")
+if fb and fb not in ids:
+    errors.append(f"fallback primary '{fb}' not in subagents")
+
+for e in errors:
+    print(e)
+sys.exit(1 if errors else 0)

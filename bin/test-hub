@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# ~/.agents/bin/test-hub — static test harness for the hub.
+# Covers workflows, bin/ scripts, route.yaml schema, skill frontmatter,
+# laya wiring, and prose style. Exits 0 on PASS, 1 on FAIL.
+
+set -uo pipefail
+HUB="${HOME}/.agents"
+FAIL=0
+note() { printf '%s\n' "$*"; }
+check() { # check <name> <cmd...>
+  local name="$1"; shift
+  if "$@" >/tmp/test-hub.log 2>&1; then
+    note "  ok    $name"
+  else
+    note "  FAIL  $name"; sed 's/^/        /' /tmp/test-hub.log | head -8
+    FAIL=1
+  fi
+}
+
+note "== workflows (test.js) =="
+check "workflow static checks" node "$HUB/workflows/test.js"
+
+note "== bin/ scripts =="
+for s in "$HUB"/bin/*; do
+  [[ -f "$s" && -x "$s" ]] || continue
+  if head -1 "$s" | grep -q python; then
+    check "py-compile $(basename "$s")" python3 -m py_compile "$s"
+  else
+    check "bash -n $(basename "$s")" bash -n "$s"
+  fi
+done
+
+note "== route.yaml schema =="
+check "route.yaml schema" python3 "$HUB/bin/_check_route_yaml"
+
+note "== skill frontmatter (name = dir) =="
+check "frontmatter names" python3 "$HUB/bin/_check_skill_names"
+
+note "== laya wiring =="
+check "laya wiring" python3 "$HUB/bin/_check_laya_wiring"
+
+note "== prose style (STYLE.md) =="
+check "style-check" "$HUB/bin/style-check" --quiet
+
+if [[ $FAIL -eq 0 ]]; then note "OVERALL: PASS"; else note "OVERALL: FAIL"; fi
+exit $FAIL
