@@ -101,9 +101,8 @@ top-level return. So:
 ## Static checks (`workflows/test.js`)
 
 `workflows/test.js` runs static checks against every `*.js` file in
-this directory. The test wraps each file in an async function
-(matching the workflow runtime) so top-level `return` becomes valid;
-then it checks:
+this directory. The test wraps each file in an async function. This mirrors
+the workflow runtime, so top-level `return` becomes valid. Then it checks:
 
 1. **Syntax** — file parses after the function-wrap.
 2. **Meta export** — file declares `export const meta = { ... }`.

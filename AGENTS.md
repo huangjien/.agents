@@ -374,7 +374,10 @@ When a user sends a message:
 ├── AGENTS.md                       ← you are here (universal standards + orchestrator)
 ├── route.yaml                      ← routing rules (edit this to retune)
 ├── README.md                       ← setup & quick start
+├── STYLE.md                        ← code style + testing + doc standards (applies when a repo has no linter)
 ├── install.sh                      ← one-shot installer (symlinks for OpenCode + Copilot)
+├── bin/                            ← hub CLI tools (laya-classify, laya-screen, test-hub, style-check, ...)
+├── evals/                          ← labeled prompt sets + eval runners (routing eval: evals/routing/)
 ├── opencode/
 │   ├── agent/
 │   │   └── major.md                ← Major agent definition (OpenCode; frontmatter merged so also Copilot-readable)
@@ -391,10 +394,12 @@ When a user sends a message:
 │   └── software-maintainer.md
 ├── copilot/
 │   └── copilot-instructions.md     ← Copilot-specific template (mirrors Part 1+2)
-├── mcp/                              ← shared tool-agnostic instruction modules (e.g., codebase-memory)
-│   └── codebase-memory.md
+├── mcp/                              ← shared tool-agnostic instruction modules
+│   ├── codebase-memory.md
+│   └── laya-decisions.md            ← laya local decision engine (thresholds, payloads)
 └── workflows/                       ← custom JavaScript workflow scripts (`<verb>-<noun>.js`)
-    └── README.md                   ← convention + when-to-use-this-vs-a-skill
+    ├── README.md                   ← convention + when-to-use-this-vs-a-skill + laya gate pattern
+    └── test.js                     ← static workflow checks (run via bin/test-workflows)
 
 (Outside this tree, but consumed by VS Code Copilot via symlinks:)
 ~/.copilot/agents/                   ← symlinks to role files; only `major.agent.md` is a real file
