@@ -152,3 +152,11 @@ confidence.
 - DO NOT delete failing tests to make the suite pass.
 - DO NOT mock things you don't own without good reason.
 </do_not>
+
+## When to call for help
+
+- Escalate to the user (ask) when a decision needs their values or goals.
+- Escalate to Major (return) when the work is out of scope for your role.
+- In-agent decision support: see `laya-shortlist` and `laya-screen` skills
+  for many-option narrowing and privacy screening before cloud calls.
+
