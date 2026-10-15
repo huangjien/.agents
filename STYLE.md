@@ -4,6 +4,37 @@
 > ALWAYS wins over this doc (AGENTS.md rule 11). This doc applies when a repo has
 > no tooling, or a decision isn't mechanically enforced.
 
+## Agents first
+
+加载本仓库的 agent(pi、OMP、OpenCode、Copilot、Codex、Gemini)是仓库内容
+的主要使用者。每一个工件先服务 agent,再服务人。冲突时,agent 的可确定性
+赢过人类的可读性。
+
+### 选择
+
+| 决策点 | 规则 |
+|---|---|
+| 语气 | 直白命令(`检查 X`);不用也许 / 你可以 |
+| 结构 | 表格 > 散文;有结构数据就用 frontmatter |
+| 例子 | 一个具体例子 > 一条抽象规则 |
+| 长度 | 短,尽量紧,20 词是下限不是上限 |
+| 冲突时 | agent 可确定性 > 人类阅读美感 |
+
+### 例外 —— 这些地方人工优先
+
+| 路径 | 谁优先 | 写给谁 |
+|---|---|---|
+| `README.md`、`install.sh` | 人工 | 安装者 |
+| `wiki/notes/` | 人工 | 未来的审计者(带日期) |
+| `wiki/patterns/` | **agent + 人工** | 双向 —— agent 按需查;`AGENTS.md` 已引用 |
+| `wiki/audits/` | 人工 | 评审者 |
+| `wiki/index.md`、`wiki/logs.md` | 人工 | 导航索引 |
+| commit 信息 | 人工 | reviewer 概览 |
+
+写入方式:patterns 必须可被 agent 加载(frontmatter + 引用),notes/audits
+只人读。给 agent 喂 notes 会让 prompt 膨胀,还会让 agent 把今天为什么
+这么做误读成必须这么做。
+
 ## Naming
 
 | Language | Functions/vars | Types/Classes | Constants | Files |
