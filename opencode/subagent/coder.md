@@ -140,3 +140,11 @@ risk or follow-up work needed.
 - DO NOT add features the user didn't request.
 - DO NOT skip tests for new behavior.
 </do_not>
+
+## When to call for help
+
+- Escalate to the user (ask) when a decision needs their values or goals.
+- Escalate to Major (return) when the work is out of scope for your role.
+- In-agent decision support: see `laya-shortlist` and `laya-screen` skills
+  for many-option narrowing and privacy screening before cloud calls.
+
