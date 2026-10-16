@@ -8,11 +8,6 @@ description: >-
   agent", "Orca browser", "orca artifacts", or "share skills". Prefer it over raw git
   worktree, ad hoc PTYs, or Computer Use when Orca state is involved. Use Computer Use only
   when a visible window needs GUI control that a CLI, filesystem, or API cannot do.
-metadata:
-  author: orca
-  version: "1.0.0"
-  last_reviewed: 2026-09-26
-  source: ""
 ---
 
 # Orca CLI
@@ -46,5 +41,7 @@ ORCA skills get orca-cli
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
 not cover. If a command reports that Orca is not running, start it with `ORCA open --json`
-and retry. If `skills get` is unknown, explain that updating Orca restores the guide; use
-`--help` for read-only discovery and do not guess unsupported commands.
+and retry. If it fails with `runtime_access_denied`, your sandbox blocked the connection:
+re-run it with escalated permissions, and do not run `ORCA open` or restart Orca. If
+`skills get` is unknown, explain that updating Orca restores the guide; use `--help` for
+read-only discovery and do not guess unsupported commands.
