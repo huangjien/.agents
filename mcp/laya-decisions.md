@@ -14,6 +14,7 @@ classification-shaped and does not need reasoning.
 
 - **Intent triage / routing pre-check** — classify a prompt into a fixed
   set of intents before dispatch (e.g. the 9 in `~/.agents/route.yaml`).
+  The intent then picks the route's `dispatch.skill` to load in-context.
   Keyword matching mis-routes prompts like "why is X popular?" to debugging.
 
 Two ready-made commands wrap the daemon:

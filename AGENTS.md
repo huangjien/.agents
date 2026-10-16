@@ -8,9 +8,10 @@
 This file has two responsibilities:
 
 1. **Universal engineering standards** — apply to *every* agent, in *every*
-   tool. Covers Major, delegated subagents, and single-agent emulators alike.
-2. **The Major orchestrator system** — how the OpenCode/Copilot entry
-   point classifies intent and dispatches to seven specialists.
+   tool. Covers Major, spawned roles, and single-agent emulators alike.
+2. **The skills-first router** — how the entry point classifies intent
+   and loads the matching skill in-context. Spawned isolation roles
+   appear only under spawn conditions.
 
 ---
 
@@ -280,11 +281,12 @@ Prose is not always the best format. Pick whichever minimizes the reader's cogni
 
 ---
 
-# Part 3 — The Major Orchestrator
+# Part 3 — The Skills-First Router
 
-> A unified agent system with **one entry point (Major)** that classifies user
-> intent and dispatches to **seven domain specialists** via routing rules in
-> [`route.yaml`](./route.yaml).
+> One entry point (**Major**) classifies user intent and dispatches
+> **skills-first**: load the matched skill's `SKILL.md` into the current
+> context and execute there. Spawned agents are for isolation only.
+> Routing rules live in [`route.yaml`](./route.yaml).
 
 ```
                     ┌──────────────────────┐
@@ -292,31 +294,36 @@ Prose is not always the best format. Pick whichever minimizes the reader's cogni
                     │ classify + dispatch  │
                     └──────────┬───────────┘
                                │
-        ┌──────────┬───────────┼───────────┬──────────┬──────────┐
-        ▼          ▼           ▼           ▼          ▼          ▼
-  ┌─────────┐ ┌────────┐ ┌──────────┐ ┌────────┐ ┌─────────┐ ┌──────────┐
-  │architect│ │ coder  │ │ debugger │ │reviewer│ │researcher│ │doc-writer│
-  └─────────┘ └────────┘ └──────────┘ └────────┘ └─────────┘ └──────────┘
-                            (+ tester, laptop-admin, software-maintainer)
+              ┌────────────────┴────────────────┐
+              ▼ default                         ▼ spawn conditions only
+   ┌────────────────────────┐      ┌──────────────────────────┐
+   │ load skill, execute    │      │ spawn researcher /       │
+   │ in the same context    │      │ reviewer (isolated ctx)  │
+   └────────────────────────┘      └──────────────────────────┘
 ```
 
-## The nine subagents
+## The dispatch targets
 
-Seven standard specialists, plus two portable roles:
+Nine route intents, each mapping to a skill (see [`route.yaml`](./route.yaml)):
 
-| ID | Role | Triggers (sample) |
-|----|------|-------------------|
-| `architect` | System design, scalability, decisions | "design", "how should I structure", "scalable" |
-| `coder` | Write / modify code, implement features | "implement", "build", "create", "refactor" |
-| `debugger` | Diagnose & fix bugs, root cause | "fix", "broken", "error", "doesn't work" |
-| `reviewer` | Code review, security, quality | "review", "audit", "check for issues" |
-| `researcher` | Investigate, explain, look up docs | "explain", "how does", "investigate", "find" |
-| `tester` | Write tests, improve coverage, TDD | "test", "coverage", "add tests" |
-| `doc-writer` | Documentation, READMEs, prose | "document", "README", "docs" |
-| `laptop-admin` | Inspect, configure, repair the laptop (ad-hoc sysadmin) | "fix my machine", "configure", "laptop", permissions, env, defaults |
-| `software-maintainer` | Maintain the agents-system itself (NOT user projects) | "the agents system", `~/.agents/`, "opencode.json", symlinks |
+| Intent | Skill | Spawn role |
+|---|---|---|
+| `debugging` | `diagnose` | — |
+| `testing` | `tdd` | — |
+| `documentation` | `doc-templates` | — |
+| `implementation` | `karpathy-engineer` | — |
+| `architecture` | `system-design` | — |
+| `review` | `code-review` | `reviewer` (fresh verification) |
+| `investigation` | `research-methods` | `researcher` (fan-out search) |
+| `laptop_administration` | `laptop-admin` | — |
+| `software_maintenance` | `software-maintenance` | — |
 
-Full routing table in [`route.yaml`](./route.yaml).
+## The two spawn roles
+
+| ID | Isolation value | Loads skill |
+|----|-----------------|-------------|
+| `researcher` | Noisy fan-out search without polluting the main context; returns a synthesized summary | `research-methods` |
+| `reviewer` | Fresh-context verification, no anchoring on the author's reasoning | `code-review` |
 
 ## Major's job
 
@@ -336,24 +343,31 @@ When a user sends a message:
 4. **Decide**:
    - **Simple / no match** (greetings, identity, clarifications,
      question-shaped shorts) → handle directly or route to
-     investigation, do NOT delegate.
-   - **Match found** → announce `Delegating to {primary} because {reason}`,
-     invoke the primary subagent, optionally parallel support subagents.
-   - **Ambiguous** → ask ONE clarifying question, then delegate.
-5. **Synthesize** the response — never paste raw subagent output verbatim.
-6. **Apply Part 1 + Part 2 rules** — every subagent must follow the engineering
-   and safety standards above. They are not suggestions; they are the contract.
+     investigation, do NOT dispatch further.
+   - **Match found** → announce `Loading skill {skill} because {reason}`,
+     read the skill's `SKILL.md`, and execute the work in-context
+     following it.
+   - **Spawn condition holds** (`fresh_verification` → `reviewer`,
+     `fanout_search` → `researcher`, or the user names a role) →
+     announce `Spawning {role} because {condition}`. Then invoke the
+     spawn role with the verbatim request.
+   - **Ambiguous** → ask ONE clarifying question, then dispatch.
+5. **Synthesize** spawned output — never paste it verbatim.
+6. **Apply Part 1 + Part 2 rules** — all dispatch paths must follow the
+   engineering and safety standards above. They are not suggestions;
+   they are the contract.
 
-## Orchestrator invariants
+## Router invariants
 
 1. **One source of truth**: everything lives in `~/.agents/`. Tools read via
    symlink or import.
 2. **Classify, don't guess**: Major never acts on a complex request without
    classifying first.
-3. **Delegate, don't hoard**: anything that matches a subagent's domain is
-   delegated, not handled in Major.
-4. **Cost-aware**: tier hints in `route.yaml` guide model choice.
-5. **No silent delegation**: always announce before invoking a subagent.
+3. **Load, don't spawn**: skills are the default dispatch. Spawn only when a
+   spawn condition holds.
+4. **Spawn costs a duplicated context**: a spawned role re-pays the full
+   scaffold and returns only a summary. Prefer in-context skill work.
+5. **No silent dispatch**: announce every skill load and every spawn.
 
 ---
 
@@ -361,13 +375,13 @@ When a user sends a message:
 
 | Tool | Mechanism | Behavior |
 |------|-----------|----------|
-| **pi** | Auto-reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context file | Single-agent — follows Part 1 + Part 2 directly. Part 3 is informational. Can also delegate via `subagent` / `workflow` tools. |
-| **OpenCode** | Native multi-agent. `major.md` is a real agent; subagents invoked via `task()` tool | Major dispatches to actual subagent processes; each subagent reads Part 1 + Part 2. |
-| **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Role definitions live at `~/.agents/opencode/subagent/<name>.md` and `~/.agents/agents/<name>.md`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | Copilot discovers 9 specialist agents via those symlinks. `major.agent.md` is a real file (not a symlink) — it's the orchestrator that uses the `agent` tool to dispatch to specialists in fresh contexts. To add a new specialist: write `~/.agents/opencode/subagent/<name>.md` with `name`, `description`, `tools`, `color` in YAML frontmatter, then add the discovery symlink. |
-| **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Codex-specific MCP/tool adapters. |
-| **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules, plus Gemini-specific MCP/tool adapters. |
+| **pi** | Auto-reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context file | Single-agent — follows Part 1 + Part 2 directly, and Part 3 routing by loading skills in-session. Can also spawn isolation roles via `subagent` / `workflow` tools. |
+| **OpenCode** | Native multi-agent. `major.md` is a real agent; spawn roles invoked via `task()` tool | Major loads the matched skill and executes in-context; spawns `researcher`/`reviewer` under spawn conditions. |
+| **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Spawn role files live at `~/.agents/opencode/subagent/`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | `major.agent.md` is a real file (not a symlink). It loads skills in-context by default and uses the `agent` tool to spawn `researcher`/`reviewer` under spawn conditions. To add a spawn role: write `~/.agents/opencode/subagent/<name>.md` with the canonical YAML frontmatter, then add the discovery symlink. |
+| **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
+| **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
 
-**Multi-agent spectrum.** Tools differ in *how* they delegate, not *whether* they can. OpenCode runs subagents as actual subprocesses (different models per agent, fully isolated contexts, hardest setup). pi spawns sub-agents in isolated contexts within the same session (`subagent` / `workflow` tools). VSCode Copilot exposes the same **role definitions at `~/.agents/`** via symlinks at `~/.copilot/agents/`. The user picks any agent from the chat dropdown. Picking `major` dispatches to specialists in fresh contexts with the `agent` tool. Codex and Gemini stay as single-agent emulators reading the routing table from `route.yaml`. The routing rules in `route.yaml` are the contract regardless of mechanism.
+**Why skills-first unifies the tools.** Skill loading is identical in every tool: read a `SKILL.md` by path. No per-tool registration, no dual-format role files for knowledge. Spawning stays tool-specific: OpenCode `task()`, Copilot `agent` tool, pi `subagent`. It is now the exception — two roles, gated by spawn conditions. Codex and Gemini lost nothing: they were single-agent emulators already. The routing rules in `route.yaml` are the contract regardless of mechanism.
 
 ---
 
@@ -388,16 +402,18 @@ When a user sends a message:
 │   ├── agent/
 │   │   └── major.md                ← Major agent definition (OpenCode; frontmatter merged so also Copilot-readable)
 │   └── subagent/
-│       ├── architect.md            ← role file; YAML frontmatter is OpenCode + Copilot compatible
-│       ├── coder.md                ← (each role file is single source of truth for both consumers)
-│       ├── debugger.md
-│       ├── reviewer.md
-│       ├── researcher.md
-│       ├── tester.md
-│       └── doc-writer.md
-├── agents/                          ← portable role files (laptop-admin + software-maintainer); same dual-consumer format
-│   ├── laptop-admin.md
-│   └── software-maintainer.md
+│       ├── researcher.md           ← spawn role (fan-out search isolation); reads skills/research-methods
+│       └── reviewer.md             ← spawn role (fresh-context verification); reads skills/code-review
+├── skills/                         ← THE dispatch layer (~70 skills; route targets + specialists' knowledge)
+│   ├── diagnose/                   ← debugging knowledge (loop + techniques + biases + templates)
+│   ├── code-review/                ← review knowledge (two-axis + severity + verdict + security)
+│   ├── tdd/                        ← test knowledge (loop + what-to-test + conventions)
+│   ├── system-design/              ← architecture knowledge (scoping gate + heuristics)
+│   ├── doc-templates/              ← docs knowledge (audiences + templates)
+│   ├── research-methods/           ← research knowledge (sources + citation discipline)
+│   ├── laptop-admin/               ← laptop/hub admin procedures
+│   ├── software-maintenance/       ← upgrade discipline
+│   └── ...                         ← (route.yaml dispatch.skill targets must exist here)
 ├── copilot/
 │   ├── copilot-instructions.md     ← Copilot-specific template (mirrors Part 1+2)
 │   └── major.agent.md              ← Major orchestrator template (seeds ~/.copilot/agents/major.agent.md)
@@ -411,31 +427,33 @@ When a user sends a message:
 (Outside this tree, but consumed by VS Code Copilot via symlinks:)
 ~/.copilot/agents/                   ← symlinks to role files; only `major.agent.md` is a real file
     ├── major.agent.md              ← real file; seeded from ~/.agents/copilot/major.agent.md on first install
-    ├── architect.agent.md          → ~/.agents/opencode/subagent/architect.md
-    ├── coder.agent.md              → ~/.agents/opencode/subagent/coder.md
-    ├── ...                         (9 specialists total — symlinks)
-    └── software-maintainer.agent.md → ~/.agents/agents/software-maintainer.md
+    ├── researcher.agent.md         → ~/.agents/opencode/subagent/researcher.md
+    └── reviewer.agent.md           → ~/.agents/opencode/subagent/reviewer.md
 ```
 
 ## Editing the system
 
-- **Add a specialist**: write a new role file at
-  `~/.agents/opencode/subagent/<name>.md` (or `~/.agents/agents/<name>.md`
-  for portable roles). Use the canonical YAML frontmatter:
+- **Add a skill** (the common case): create
+  `~/.agents/skills/<name>/SKILL.md` (frontmatter `name:` byte-identical
+  to the dir name). If it should be a dispatch target, add a route in
+  `route.yaml` with `dispatch.skill: <name>`. `bin/test-hub` verifies
+  every dispatch target exists on disk.
+- **Add a spawn role** (rare — only for a genuinely new isolation job):
+  write `~/.agents/opencode/subagent/<name>.md` with the canonical YAML
+  frontmatter:
   ```
   ---
   name: <name>
-  description: <one-line summary>
+  description: <one-line summary; state the spawn condition>
   tools: ['read', 'edit', 'execute', 'search']   # add 'web' if it needs web access
   color: <distinct color name>
   model: inherit
   mode: subagent
   ---
   ```
-  Then add a symlink at `~/.copilot/agents/<name>.agent.md → <path>` so
-  VS Code Copilot discovers it. Re-run `install.sh` to automate this
-  on a fresh machine. Also register in `route.yaml` under `subagents:`
-  and add a route entry.
+  The role must read a skill on start (`loads:` in `route.yaml`). Add the
+  `~/.copilot/agents/<name>.agent.md → <path>` symlink, register under
+  `spawn_roles:` in `route.yaml`, re-run `install.sh`.
 - **Change routing**: edit `route.yaml`. No code changes required.
 - **Tune engineering behavior**: edit Part 1 / Part 2 of this file (universal)
   *or* the matching tool-specific file (`copilot/copilot-instructions.md`).

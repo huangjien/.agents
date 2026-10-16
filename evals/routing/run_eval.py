@@ -21,7 +21,6 @@ import re
 import yaml
 route = yaml.safe_load((HUB / "route.yaml").read_text())
 ROUTES = sorted(route["routes"], key=lambda r: -r.get("priority", 0))
-SUBAGENT_IDS = {a["id"] for a in route["subagents"]}
 
 GREETINGS = {"hi", "hey", "hello", "yo", "sup", "thanks", "thank", "thx",
              "bye", "goodbye", "cheers"}

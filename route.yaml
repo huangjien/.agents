@@ -1,62 +1,47 @@
 # ================================================================= ==
-# route.yaml — Major Agent Routing Rules                              ==
-# Single source of truth for intent classification + subagent dispatch ==
+# route.yaml — Intent Routing Rules (skills-first)                   ==
+# Single source of truth for intent classification + dispatch        ==
+#                                                                    ==
+# Skills are the default dispatch target: load the SKILL.md into    ==
+# context and execute there. Spawned agents are for isolation only  ==
+# (fresh-context verification, broad fan-out search).               ==
 #                                                                    ==
 # Read by:                                                           ==
 #   - OpenCode Major agent (~/.agents/opencode/agent/major.md)       ==
 #   - pi / Codex / Gemini / Copilot via ~/AGENTS.md reference        ==
 #                                                                    ==
-# Edit this file to add routes, change subagents, or tune triggers.  ==
+# Edit this file to add routes, change skills, or tune triggers.    ==
+# Do NOT retune triggers casually — evals/routing guards them.      ==
 # ================================================================= ==
 
-version: 1
+version: 2
 
 # --- Major agent behavior config --------------------------------- --
 major_agent:
   name: Major
-  description: Universal entry point. Classifies user intent and dispatches to domain specialists.
-  default_behavior: classify_then_delegate
+  description: Universal entry point. Classifies user intent and dispatches — skill load by default, spawn only under spawn conditions.
+  default_behavior: classify_then_dispatch
 
-  # Things Major handles itself (DO NOT delegate)
+  # Things Major handles itself (DO NOT dispatch)
   handle_directly:
     - greetings           # hi, hello, hey
     - farewells           # bye, thanks
     - identity_queries    # who are you, what can you do
     - clarifications      # asking about a previous response
     - simple_factoids     # one-line factual answers
-    - meta_questions      # about route.yaml, agents list, system state
+    - meta_questions      # about route.yaml, skills list, system state
     - status_checks       # what's running, what's done
 
-# --- Subagent registry ------------------------------------------- --
-# Each entry: id (used in dispatch), role summary, model tier hint
-subagents:
-  - id: architect
-    role: System design, scalability, tech decisions, planning
-    tier: expensive          # uses high-IQ reasoning
-  - id: coder
-    role: Write/modify code, implement features, refactor
-    tier: balanced
-  - id: debugger
-    role: Diagnose bugs, root cause analysis, fix failures
-    tier: expensive
-  - id: reviewer
-    role: Code review, security audit, quality checks
-    tier: balanced
+# --- Spawn registry ----------------------------------------------- --
+# The ONLY spawned roles. Each runs in an isolated context and reads
+# its `loads` skill on start. Spawn exclusively under rules.spawn_conditions.
+spawn_roles:
   - id: researcher
-    role: Investigate, gather info, explain concepts, lookup docs
-    tier: cheap              # uses external search, doesn't need deep reasoning
-  - id: tester
-    role: Write tests, run tests, improve coverage, TDD
-    tier: balanced
-  - id: doc-writer
-    role: Documentation, READMEs, technical prose, comments
-    tier: cheap
-  - id: laptop-admin
-    role: Safe laptop, system, and agent-tool administration
-    tier: balanced
-  - id: software-maintainer
-    role: Maintain local developer software, CLIs, and runtimes
-    tier: balanced
+    role: Noisy fan-out research (many files / repos / web pages) in an isolated context; returns a synthesized summary
+    loads: research-methods
+  - id: reviewer
+    role: Fresh-context diff verification — no anchoring on the author's reasoning; returns severity-tagged findings and a verdict
+    loads: code-review
 
 # --- Routing rules ------------------------------------------------ --
 # Order matters: earlier routes win on tie. Trigger matching:
@@ -80,9 +65,8 @@ routes:
         - install an agent
         - install an MCP
         - manage agent tools
-    agents:
-      primary: laptop-admin
-      support: [software-maintainer]
+    dispatch:
+      skill: laptop-admin
     priority: 95
 
   - intent: software_maintenance
@@ -95,9 +79,8 @@ routes:
         - update my CLI
         - upgrade the toolchain
         - install a package
-    agents:
-      primary: software-maintainer
-      support: [researcher]
+    dispatch:
+      skill: software-maintenance
     priority: 92
 
   - intent: debugging
@@ -111,9 +94,8 @@ routes:
         - used to work
         - suddenly stopped
         - it broke
-    agents:
-      primary: debugger
-      support: [researcher]    # parallel: docs/examples lookup
+    dispatch:
+      skill: diagnose
     priority: 90               # higher = wins more ties
 
   - intent: implementation
@@ -129,9 +111,8 @@ routes:
         - add support for
         - as default
         - set up
-    agents:
-      primary: coder
-      support: [tester, reviewer]   # sequential: test after, review last
+    dispatch:
+      skill: karpathy-engineer
     priority: 80
 
   - intent: review
@@ -146,9 +127,9 @@ routes:
         - what can I improve
         - audit
         - look for issues
-    agents:
-      primary: reviewer
-      support: []
+    dispatch:
+      skill: code-review
+      spawn: reviewer          # only under spawn_conditions.fresh_verification
     priority: 70
 
   - intent: architecture
@@ -163,9 +144,8 @@ routes:
         - technical decision
         - plan the
         - approach for
-    agents:
-      primary: architect
-      support: [researcher]    # parallel: similar patterns / prior art
+    dispatch:
+      skill: system-design
     priority: 75
 
   - intent: testing
@@ -179,9 +159,8 @@ routes:
         - test coverage
         - test this
         - increase coverage
-    agents:
-      primary: tester
-      support: []
+    dispatch:
+      skill: tdd
     priority: 85              # above implementation: "add tests" is testing,
                               # not a generic code change
 
@@ -195,9 +174,8 @@ routes:
         - document this
         - update the README
         - add comments
-    agents:
-      primary: doc-writer
-      support: []
+    dispatch:
+      skill: doc-templates
     priority: 82              # above implementation: "update the README" is
                               # documentation, not a generic code change
 
@@ -213,27 +191,45 @@ routes:
         - find out
         - where can I find
         - how do I use
-    agents:
-      primary: researcher
-      support: []
+    dispatch:
+      skill: research-methods
+      spawn: researcher        # only under spawn_conditions.fanout_search
     priority: 50
 
 # --- Fallback (no route matched) --------------------------------- --
 fallback:
   intent: general
   description: Could not classify confidently
-  agents:
-    primary: researcher       # safest default: gather info before acting
+  dispatch:
+    skill: research-methods    # safest default: gather info before acting
+    spawn: researcher          # only under spawn_conditions.fanout_search
   note: |
     If the request is genuinely ambiguous, ask ONE clarifying question
-    before delegating. Do not ping-pong the user.
+    before dispatching. Do not ping-pong the user.
 
 # --- Routing meta-rules ------------------------------------------ --
 rules:
+  - name: skill_first
+    description: >
+      Default dispatch is a skill load, not a spawn. Read the matched
+      skill's SKILL.md into the current context and execute the work
+      there. In-context beats spawning because cross-domain context
+      helps and spawning duplicates the whole scaffold.
+
+  - name: spawn_conditions
+    description: >
+      Spawn a role ONLY when one of these holds: (1) fresh_verification —
+      independent review of completed work, no anchoring on the author's
+      reasoning (spawn reviewer); (2) fanout_search — the work reads many
+      files, repos, or web pages and would pollute the main context
+      (spawn researcher); (3) explicit_request — the user names a spawn
+      role. Everything else stays in-context.
+
   - name: explicit_over_implicit
     description: >
-      If the user names a subagent explicitly ("use the debugger",
-      "ask the architect"), honor that choice over keyword matching.
+      If the user names a skill or a spawn role explicitly ("use the
+      tdd skill", "ask the reviewer"), honor that choice over keyword
+      matching.
 
   - name: simple_shortcut
     description: >
@@ -243,22 +239,18 @@ rules:
       queries are handled directly. Other short unmatched requests
       are likely simple — handle directly.
 
-  - name: parallel_support
+  - name: announce_dispatch
     description: >
-      "support" agents run in parallel with "primary" when possible.
-      If parallelism isn't available, run primary first, then support.
+      Never dispatch silently. Announce "Loading skill {skill} because
+      {reason}" or, when spawning, "Spawning {role} because {condition}".
 
-  - name: cost_awareness
+  - name: spawn_cost
     description: >
-      Tier hints (expensive/balanced/cheap) suggest model choice.
-      Respect them when picking a model for the subagent call.
+      A spawned role re-pays the full scaffold (system prompt + tools)
+      and returns only a summary. Prefer in-context skill work unless a
+      spawn condition holds.
 
-  - name: no_orphan_delegation
+  - name: synthesize_on_spawn
     description: >
-      Never invoke a subagent without telling the user — always
-      announce "Delegating to {agent} because {reason}" first.
-
-  - name: synthesize_response
-    description: >
-      After all agents return, synthesize a single coherent response.
-      Do not paste raw subagent output verbatim.
+      When a spawned role returns, synthesize its output into a single
+      coherent response. Do not paste raw spawned output verbatim.
