@@ -32,11 +32,27 @@ check_link() {
 
 check_file "hub rules" "${agents_dir}/AGENTS.md"
 check_file "routing" "${agents_dir}/route.yaml"
-check_file "laptop role" "${agents_dir}/agents/laptop-admin.md"
-check_file "software role" "${agents_dir}/agents/software-maintainer.md"
+check_file "spawn researcher" "${agents_dir}/opencode/subagent/researcher.md"
+check_file "spawn reviewer" "${agents_dir}/opencode/subagent/reviewer.md"
 check_link "home AGENTS" "${HOME}/AGENTS.md"
 check_link "OpenCode Major" "${HOME}/.config/opencode/agent/major.md"
-check_link "OpenCode laptop" "${HOME}/.config/opencode/subagent/laptop-admin.md"
+check_link "OpenCode researcher" "${HOME}/.config/opencode/subagent/researcher.md"
+check_link "OpenCode reviewer" "${HOME}/.config/opencode/subagent/reviewer.md"
+
+# Every route dispatch.skill target must exist on disk
+skill_fail=0
+while IFS= read -r skill; do
+  if [[ ! -f "${agents_dir}/skills/${skill}/SKILL.md" ]]; then
+    printf 'WARN %-18s missing: %s/skills/%s/SKILL.md\n' "dispatch skill" "$agents_dir" "$skill"
+    warn=$((warn + 1))
+    skill_fail=1
+  fi
+done < <(grep -E '^\s*skill:' "${agents_dir}/route.yaml" | awk '{print $2}' | sort -u)
+if [[ "$skill_fail" -eq 0 ]]; then
+  printf 'OK   %-18s all route dispatch.skill targets exist\n' "dispatch skills"
+  ok=$((ok + 1))
+fi
+
 check_file "Codex adapter" "${agents_dir}/adapters/codex.md"
 check_file "pi adapter" "${agents_dir}/adapters/pi.md"
 check_file "Gemini adapter" "${agents_dir}/adapters/gemini.md"

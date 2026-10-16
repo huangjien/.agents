@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ================================================================== ==
-# install.sh — Install the Major agent system across OpenCode/VSCode
+# install.sh — Install the agents hub (skills-first) across OpenCode/VSCode
 # Idempotent: safe to re-run after editing files in ~/.agents/
 # ================================================================== ==
 
@@ -82,40 +82,39 @@ mkdirp "${OPENCODE_DIR}/subagent"
 # Major agent
 link "${AGENTS_DIR}/opencode/agent/major.md" "${OPENCODE_DIR}/agent/major.md"
 
-# Subagents
-for sub in architect coder debugger reviewer researcher tester doc-writer; do
+# Spawn roles (the only subagents — skills carry the knowledge)
+for sub in researcher reviewer; do
   src="${AGENTS_DIR}/opencode/subagent/${sub}.md"
   if [[ ! -f "$src" ]]; then
-    warn "missing subagent file: ${src} — skipping"
+    warn "missing spawn role file: ${src} — skipping"
     continue
   fi
   link "$src" "${OPENCODE_DIR}/subagent/${sub}.md"
 done
 
-info "OpenCode: $(ls "${OPENCODE_DIR}/agent/" 2>/dev/null | wc -l | tr -d ' ') agents, $(ls "${OPENCODE_DIR}/subagent/" 2>/dev/null | wc -l | tr -d ' ') subagents"
-info "Switch to Major via /agents → 'major', or set as default in opencode.json"
-
-# Portable roles. Existing OpenCode roles remain authoritative; these
-# roles are loaded into OpenCode only — Claude integration removed
-# (Claude retired 2026-10).
-log "=== Portable role integration ==="
-mkdirp "${AGENTS_DIR}/agents"
-for role in laptop-admin software-maintainer; do
-  src="${AGENTS_DIR}/agents/${role}.md"
-  [[ -f "$src" ]] || { warn "missing portable role: ${src} — skipping"; continue; }
-  link "$src" "${OPENCODE_DIR}/subagent/${role}.md"
+# Prune broken subagent symlinks (roles retired in the skills-first redesign)
+for dst in "${OPENCODE_DIR}/subagent/"*.md; do
+  [[ -L "$dst" && ! -e "$dst" ]] && { rm "$dst"; warn "pruned broken symlink: ${dst}"; }
 done
 
-# VS Code Copilot discovery layer: each role file in opencode/subagent/
-# or agents/ becomes a symlink at ~/.copilot/agents/<name>.agent.md
-# so VS Code Copilot's chat dropdown shows the agent. The role file
-# already has dual-consumer YAML frontmatter (OpenCode + Copilot).
+info "OpenCode: $(ls "${OPENCODE_DIR}/agent/" 2>/dev/null | wc -l | tr -d ' ') agents, $(ls "${OPENCODE_DIR}/subagent/" 2>/dev/null | wc -l | tr -d ' ') spawn roles"
+info "Switch to Major via /agents → 'major', or set as default in opencode.json"
+
+# VS Code Copilot discovery layer: each spawn role file in
+# opencode/subagent/ becomes a symlink at ~/.copilot/agents/<name>.agent.md
+# so VS Code Copilot's chat dropdown shows it. Skills need no
+# registration — Copilot loads them from ~/.agents/skills/ by description.
 log "=== Copilot agent discovery layer ==="
 mkdirp "${HOME}/.copilot/agents"
-for src in "${AGENTS_DIR}"/opencode/subagent/*.md "${AGENTS_DIR}"/agents/*.md; do
+for src in "${AGENTS_DIR}"/opencode/subagent/*.md; do
   [[ -f "$src" ]] || continue
   name="$(basename "${src%.md}")"
   link "$src" "${HOME}/.copilot/agents/${name}.agent.md"
+done
+# Prune broken Copilot symlinks that pointed at retired hub role files
+# (leave non-hub files like gsd-*.agent.md untouched)
+for dst in "${HOME}/.copilot/agents/"*.agent.md; do
+  [[ -L "$dst" && ! -e "$dst" ]] && { rm "$dst"; warn "pruned broken symlink: ${dst}"; }
 done
 # major.agent.md is a real file seeded from the repo template
 # (~/.agents/copilot/major.agent.md) on first install. An existing
@@ -152,11 +151,12 @@ fi
 
 log "=== Summary ==="
 echo
-info "Major agent system installed:"
+info "Agents hub installed (skills-first):"
 echo "  ~/.agents/                          ← source of truth"
-echo "  ~/.config/opencode/agent/major.md   ← OpenCode (native multi-agent)"
-echo "  ~/.config/opencode/subagent/*.md    ← OpenCode subagents (incl. portable roles)"
-echo "  ~/.copilot/agents/*.agent.md         ← VS Code Copilot agents (symlinks to L1 + major.agent.md)"
+echo "  ~/.agents/skills/                   ← dispatch layer (route.yaml → dispatch.skill)"
+echo "  ~/.config/opencode/agent/major.md   ← OpenCode entry point"
+echo "  ~/.config/opencode/subagent/*.md    ← 2 spawn roles (researcher, reviewer)"
+echo "  ~/.copilot/agents/*.agent.md         ← VS Code Copilot (major + 2 spawn-role symlinks)"
 echo "  ~/AGENTS.md                         ← pi / Codex / Gemini / Copilot (auto-discovered)"
 echo "  ~/.agents/mcp/*.md                  ← Shared tool-specific instructions (e.g. codebase-memory)"
 echo
