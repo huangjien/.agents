@@ -3,8 +3,8 @@ name: tdd
 description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
 metadata:
   author: local
-  version: "1.0.0"
-  last_reviewed: 2026-09-26
+  version: "1.1.0"
+  last_reviewed: 2026-10-16
   source: ""
   local_only: true
 ---
@@ -103,6 +103,56 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - [ ] Run tests after each refactor step
 
 **Never refactor while RED.** Get to GREEN first.
+
+## What to test
+
+Before writing tests for a feature / bug / change, identify:
+
+- **Happy path**: the normal case
+- **Edge cases**: empty input, single item, large input, boundary values
+- **Error cases**: invalid input, dependency failure, permission denied
+- **Concurrency** (if relevant): race conditions, ordering
+- **Regression** (for bugs): the specific case that was broken
+
+Do NOT test:
+
+- Language features (e.g., "TypeScript generics work")
+- Framework internals (e.g., "React renders components")
+- Private implementation details that aren't part of the contract
+
+## What deserves a test
+
+| Yes | No |
+|-----|----|
+| Business logic | Language primitives |
+| Edge cases in your code | Framework features |
+| Bug fixes (regression test) | Trivial getters/setters |
+| Public API contracts | Private helpers with no branches |
+| Error paths | Config loading |
+
+## Test conventions
+
+Before writing any test, read 2-3 existing test files in the area you'll touch. Note the framework, naming, setup/teardown patterns, and assertion style — match what's there, do not invent a new style. Use the project's existing helpers / fixtures / factories.
+
+Each test:
+
+- **Named clearly**: `should reject expired tokens`, not `test1` — a new dev should read test names and understand what the code does
+- **One behavior**: one assertion focus per test; a test with 8 assertions is 8 tests masquerading as one
+- **Arrange-Act-Assert**: setup, action, verify — in that order
+- **Independent**: doesn't rely on test execution order
+- **Fast**: unit tests < 100ms each
+
+## Test pyramid
+
+- **Unit** (many, fast, isolated): pure functions, business logic
+- **Integration** (some, medium, real dependencies): DB, API contracts
+- **E2E** (few, slow, full system): critical user journeys
+
+Default to unit. Use integration when units don't catch real bugs. Use E2E only for high-value flows (signup, payment, key user task).
+
+## No test slop
+
+Don't write tests just to hit a coverage number. A test that asserts `expect(result).toBeDefined()` is worse than no test — it gives false confidence. Don't mock things you don't own without good reason, and never delete failing tests to make the suite pass.
 
 ## Checklist Per Cycle
 

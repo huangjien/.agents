@@ -3,8 +3,8 @@ name: diagnose
 description: Disciplined diagnosis loop for hard bugs and performance regressions. Reproduce → minimise → hypothesise → instrument → fix → regression-test. Use when user says "diagnose this" / "debug this", reports a bug, says something is broken/throwing/failing, or describes a performance regression.
 metadata:
   author: local
-  version: "1.0.0"
-  last_reviewed: 2026-09-26
+  version: "1.1.0"
+  last_reviewed: 2026-10-16
   source: ""
   local_only: true
 ---
@@ -14,6 +14,21 @@ metadata:
 A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, use the project's domain glossary to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
+
+## Phase 0 — Gather symptoms
+
+The user knows: what they expected, what actually happened, error messages they saw, when it started. The user does NOT know what's causing it, which file is wrong, or what the fix should be — so don't ask them.
+
+Ask (one question, not a survey; skip if symptoms are already in the prompt):
+
+- Expected behavior vs. actual behavior
+- Error messages (verbatim, in quotes)
+- When it started / whether it ever worked
+- Reproduction steps
+
+Ask about experience. Investigate the cause yourself.
+
+**Author bias**: if you're debugging code you (or another agent) wrote, your mental model is the suspect. Treat your assumptions as hypotheses, not facts.
 
 ## Phase 1 — Build a feedback loop
 
@@ -121,3 +136,80 @@ Required before declaring done:
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
 
 **Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
+
+## Investigation techniques
+
+| Situation | Technique |
+|-----------|-----------|
+| Large codebase, many files | Binary search — add probes at midpoints |
+| Confused about what's happening | Rubber duck: explain it out loud, in writing |
+| Complex system, many moving parts | Minimal reproduction — strip until bug is obvious |
+| Know desired output | Work backwards through the call stack |
+| Used to work, now doesn't | Differential debugging: list what changed |
+| Many possible causes | Comment out everything, uncomment one at a time |
+| Always | Add observability BEFORE changing behavior |
+
+## Cognitive biases
+
+| Bias | Trap | Antidote |
+|------|------|----------|
+| Confirmation | Only seek evidence supporting your hypothesis | Ask "what would prove me wrong?" |
+| Anchoring | First explanation becomes your anchor | Generate 3+ hypotheses before investigating |
+| Availability | Recent bugs → assume similar cause | Treat each bug as novel until evidence says otherwise |
+| Sunk cost | Spent 2 hours on one path, keep going | Every 30 min: "If I started fresh, would I take this path?" |
+
+## Report templates
+
+### Root cause found (diagnosis-only)
+
+```markdown
+## ROOT CAUSE FOUND
+
+**Root cause:** {specific cause with evidence}
+
+**Evidence:**
+- {finding 1}
+- {finding 2}
+- {finding 3}
+
+**Files involved:**
+- `path/to/file` — {what's wrong}
+
+**Suggested fix direction:** {brief hint, not implementation}
+```
+
+### Bug fixed
+
+```markdown
+## BUG FIXED
+
+**Root cause:** {what was wrong}
+
+**Fix applied:**
+- `path/to/file` — {change}
+
+**Verification:**
+- Original symptom: ✅ no longer reproduces
+- Mechanism understood: ✅ {one-line explanation}
+- Regression tests: ✅ {N passed}
+- Adjacent functionality: ✅ {checked}
+
+**Test added:** `tests/{name}` — regression protection
+```
+
+### Inconclusive
+
+```markdown
+## INVESTIGATION INCONCLUSIVE
+
+**Checked:**
+- {area}: {finding}
+
+**Hypotheses eliminated:**
+- {hypothesis}: {why eliminated}
+
+**Remaining possibilities:**
+- {possibility}
+
+**Recommendation:** {escalate / manual review / additional info needed}
+```

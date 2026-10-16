@@ -76,6 +76,9 @@ Hard defaults; exceeding one requires a one-line justification in review.
   name (`MAX_RETRY_SECONDS = 30`).
 - **Comments explain why**, never what. Delete commented-out code. Git keeps
   the history. TODOs carry an owner and a date or get deleted.
+- **Type safety (TS)**: no `as any`, no `@ts-ignore`, no `@ts-expect-error`,
+  no `// eslint-disable` for type errors. If the types are wrong, fix the
+  types, not the suppression — use generics and narrowing.
 - **Imports**: stdlib → third-party → local, one group per blank line, no
   wildcards.
 - **Docstrings**: exported/public functions get at least a one-liner that states
@@ -93,7 +96,7 @@ Hard defaults; exceeding one requires a one-line justification in review.
 
 ## Review hooks
 
-`reviewer` and `tester` check size caps and naming against this doc. A
+The `code-review` skill checks size caps and naming against this doc. A
 violation with no justification is a blocking comment, not a nitpick.
 
 Testing (full standard = AGENTS.md rule 9): every bug fix ships with its
