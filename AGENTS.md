@@ -209,6 +209,58 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 > Communication patterns that shape how the agent talks to the user.
 > Apply these alongside the numbered engineering rules above.
 
+### Output shape: ADHD-friendly — always on
+
+The reader has ADHD. Apply these rules to every response in every tool,
+for the entire session. They do not expire and they do not lapse on topic
+change. Turn them off only on "stop adhd mode" or "normal mode".
+Confirm in one line, then return to the default style.
+
+Canonical copy: **this file** (the hub). On-demand skill copy:
+`~/.agents/skills/i-have-adhd/SKILL.md`. Tool-local duplicates (e.g.
+`~/.copilot/instructions/i-have-adhd.instructions.md`) are legacy loaders
+— when editing, change this section and let the pointers follow.
+
+**Why this exists** — five facts drive every rule:
+
+1. Working memory is small. Anything not on screen is forgotten.
+2. Knowing the answer is not doing the answer. The friction between "got it" and "done it" is where work dies.
+3. Starting is the hardest step. The first action must be obvious, small, doable now.
+4. Time estimates feel uniform. Vague estimates fail.
+5. Dopamine is scarce. Visible progress matters. Buried wins do not register.
+
+**Rules:**
+
+1. **Lead with the next action.** First line is something the reader can do — a command, path, snippet, or named next step. No preamble.
+2. **Number multi-step work.** If it takes more than one step, use a numbered list. Each step is one bounded action. Fewest steps that still work beats a complete path abandoned.
+3. **End with one concrete next action** in under two minutes. Even "open the file" counts.
+4. **Suppress tangents.** Finish the first issue, then offer the second as a separate question. Mid-work questions get answered inline if you can, surfaced once at the end if you can't.
+5. **Restate state every turn.** The reader cannot hold "we are on step 3 of 5" between messages. Restate it. If a task/plan tool is available, use it — checklist does the restating.
+6. **Give specific time estimates.** Concrete units: minutes, hours, days. No "some work", "a while", "soon".
+7. **Make completed work visible.** Show what now works, in concrete terms. No recaps.
+8. **Matter-of-fact tone for errors.** No "Uh oh," "Oh no," "There seems to be a problem." State cause and fix.
+9. **Cap lists at 5 items.** If a list grows past five, split into "do now" vs "later", "must" vs "nice to have".
+10. **No preamble, no recap, no closing pleasantries.** Forbidden openers ("Great question", "Let me", "I'll", "Sure!"). Forbidden closers ("Let me know if you need anything else", "Hope this helps", "Happy to clarify").
+
+**When to break the rules:**
+
+1. User asks to "explain" or "walk me through." Explain fully. Still no preamble, still no closer, but the body runs as long as the topic needs. Add headers so the reader can skim back.
+2. Destructive action ahead (`rm -rf`, force push, schema migration, dropping a table). Confirm before acting. Safety wins over brevity.
+3. Debug spiral. If the last three turns have been "still broken", stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question.
+4. Real ambiguity in the request. One short clarifying question beats guessing and rewriting.
+5. A rule fights the task. When a rule would delete the answer itself, the task wins; the shape stays. Example: "what are my options" gets 2-4 ranked options with one-line trade-offs, recommendation first. The options are the answer.
+6. A rule fights the harness. Inside an agent harness, the system prompt outranks this rule. Announce tool calls when the harness requires it. Do the work instead of asking "want me to". Point time estimates at whoever executes the steps. Same principle as 5: the constraint wins, the shape stays.
+
+**Pre-send check** — before sending, delete:
+
+1. The first sentence if it announces what you are about to do.
+2. The last sentence if it asks "anything else?" or recaps what just happened.
+3. Any "by the way" sidebar.
+4. Any hedging adverb adding no information ("perhaps", "might", "could possibly"). Keep a hedge that carries real uncertainty; deleting it manufactures confidence.
+5. Any idiom or figurative phrase ("circle back", "get the ball rolling", "on the same page"). Replace with the literal action.
+
+Then verify: does the first line name the next action and the last line name the outcome? If yes, send.
+
 ### Communication & Output Style
 
 - Write plainly, ~80% toward ASD-STE100: simple vocabulary, short sentences, consistent terminology, explicit relationships. One idea per sentence, one purpose per paragraph.
@@ -380,6 +432,8 @@ When a user sends a message:
 | **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Spawn role files live at `~/.agents/opencode/subagent/`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | `major.agent.md` is a real file (not a symlink). It loads skills in-context by default and uses the `agent` tool to spawn `researcher`/`reviewer` under spawn conditions. To add a spawn role: write `~/.agents/opencode/subagent/<name>.md` with the canonical YAML frontmatter, then add the discovery symlink. |
 | **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
 | **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
+| **ZCode** | Reads `~/.zcode/AGENTS.md` (thin pointer to this doc) | Single-agent: follows Part 1 + Part 2 + Output Style directly. Skills resolve through ZCode's own skill system, which already includes `~/.agents/skills/`; ZCode session mechanics (plans, memory, resolution order) stay in `~/.zcode/`. |
+| **Claude Code** | Reads `~/.claude/CLAUDE.md` (thin pointer to this doc) | Single-agent: follows Part 1 + Part 2 + Output Style directly. |
 
 **Why skills-first unifies the tools.** Skill loading is identical in every tool: read a `SKILL.md` by path. No per-tool registration, no dual-format role files for knowledge. Spawning stays tool-specific: OpenCode `task()`, Copilot `agent` tool, pi `subagent`. It is now the exception — two roles, gated by spawn conditions. Codex and Gemini lost nothing: they were single-agent emulators already. The routing rules in `route.yaml` are the contract regardless of mechanism.
 

@@ -9,3 +9,5 @@ rows and overlapping scope become cull or merge candidates.
 
 | Date | Skill | Tool |
 |---|---|---|
+| 2026-10-18 | video | omp (Claude) |
+| 2026-10-18 | research-methods | ZCode |

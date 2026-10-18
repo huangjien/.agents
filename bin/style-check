@@ -5,7 +5,8 @@ Blocking: any prose sentence over 20 words (STYLE.md, Documentation section).
 Warnings: passive-voice hits and wordy-form vocabulary.
 
 Scope: git-tracked .md files, excluding upstream-synced skills/ (except
-laya-triage), wiki history, and backups. Add --quiet to print failures only.
+laya-triage), wiki history, backups, and .zcode/ tool session state.
+Add --quiet to print failures only.
 """
 import re, subprocess, sys
 from pathlib import Path
@@ -24,7 +25,7 @@ def targets():
                          capture_output=True, text=True).stdout.splitlines()
     keep = []
     for f in out:
-        if f.startswith(("wiki/", ".archive/")): continue
+        if f.startswith(("wiki/", ".archive/", ".zcode/")): continue
         if f.startswith("skills/") and not f.startswith("skills/laya-triage/"): continue
         if f.startswith("evals/"): continue
         keep.append(HUB / f)
