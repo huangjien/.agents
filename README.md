@@ -30,14 +30,17 @@ role switching.
 
 | Component | Purpose |
 |-----------|---------|
-| `AGENTS.md` | Cross-tool entry doc (read by all 3 tools) |
+| `AGENTS.md` | Cross-tool entry doc (read by all tools) |
 | `route.yaml` | Routing rules — the single source of truth for who-does-what |
-| `opencode/agent/major.md` | Major agent definition (OpenCode; frontmatter merged so also Copilot-readable) |
-| `opencode/subagent/*.md` | 7 standard specialists: architect, coder, debugger, reviewer, researcher, tester, doc-writer |
-| `agents/laptop-admin.md`, `agents/software-maintainer.md` | 2 portable role definitions; same dual-consumer format as the standard roles |
+| `opencode/agent/major.md` | Major agent definition (OpenCode) |
+| `opencode/subagent/*.md` | 2 spawn roles: reviewer (fresh-context verification), researcher (fan-out search) |
+| `copilot/agents/*.agent.md` | Same 2 roles, Copilot frontmatter dialect |
 | `copilot/copilot-instructions.md` | Copilot instructions template |
+| `skills/` | ~70 skills — the dispatch layer route.yaml points at |
 | `adapters/*.md` | Client integration notes |
 | `bin/verify-global-agents` | Integration health check |
+| `bin/test-hub` | Static harness: route schema, frontmatter, model separation, prose style |
+| `.github/workflows/hub-ci.yml` | CI: test-hub + workflow scripts + shellcheck + routing eval + model-separation fixtures + fresh-HOME install |
 | `install.sh` | One-shot installer (idempotent) |
 
 ## How routing works
@@ -50,9 +53,16 @@ user message
 │      MAJOR      │  ← reads route.yaml, classifies intent
 └────────┬────────┘
          │
-   ┌─────┴─────┬──────┬──────┬──────┬──────┬──────┐
-   ▼           ▼      ▼      ▼      ▼      ▼      ▼
-architect   coder  debugger reviewer researcher tester  doc-writer
+         ▼ skills-first: load the matched skill in-context
+   ┌───────────────────────────────────────────┐
+   │ 9 route intents → skills/diagnose, tdd,   │
+   │ code-review, system-design, doc-templates,│
+   │ karpathy-engineer, research-methods, ...  │
+   └───────────────────────────────────────────┘
+         │ (only under spawn conditions)
+         ▼ spawn for context isolation
+   researcher (fan-out search)   reviewer (fresh verification,
+                                  different model family than author)
 ```
 
 Major never writes code, debugs, or reviews itself. It classifies and
@@ -61,21 +71,24 @@ factoids) it handles directly.
 
 ## Editing the system
 
-### Add a new subagent (OpenCode) / specialist (Copilot)
+### Add a new spawn role (OpenCode / Copilot)
 
-Each role file is a single source of truth for both OpenCode and VS
-Code Copilot. The YAML frontmatter is dual-consumer. OpenCode reads `name` /
-`description` / `model` / `mode`. Copilot reads `name` / `description` /
-`tools` / `color`.
+OpenCode and Copilot parse agent frontmatter differently, so each role
+has two files. OpenCode wants `tools` as an object, a `permission`
+block, and `model` as `provider/model-id`. Copilot wants `tools` as an
+array and `model` as an array of model names.
 
-1. Write `~/.agents/opencode/subagent/{name}.md` (or
-   `~/.agents/agents/{name}.md` for portable roles). Copy an existing
-   role file as a template.
-2. Register it in `route.yaml` under `subagents:`.
-3. Add a route entry under `routes:` with triggers.
-4. Re-run `~/.agents/install.sh` — it re-creates the OpenCode
-   symlink (`~/.config/opencode/subagent/<name>.md`) and the Copilot
-   discovery symlink (`~/.copilot/agents/<name>.agent.md → ~/.agents/...`).
+1. Write `~/.agents/opencode/subagent/{name}.md` (OpenCode dialect).
+2. Write `~/.agents/copilot/agents/{name}.agent.md` (Copilot dialect).
+3. Register it in `route.yaml` under `spawn_roles:`.
+4. Add a route entry under `routes:` with triggers.
+5. Re-run `~/.agents/install.sh`. It links the OpenCode role into
+   `~/.config/opencode/agents/` (the dir OpenCode actually scans).
+   It links the Copilot role into `~/.copilot/agents/`.
+
+Verification roles (`reviewer`) must run on a different model family
+than authoring. `bin/_check_model_separation` (wired into
+`bin/test-hub`) enforces this across pi, OpenCode, and Copilot.
 
 ### Change routing
 
@@ -119,24 +132,24 @@ others emulate by switching behavior based on the routing rules.
 │   ├── agent/
 │   │   └── major.md                Major agent (OpenCode)
 │   └── subagent/
-│       ├── architect.md
-│       ├── coder.md
-│       ├── debugger.md
-│       ├── reviewer.md
-│       ├── researcher.md
-│       ├── tester.md
-│       └── doc-writer.md
+│       ├── reviewer.md             spawn role: fresh-context verification
+│       └── researcher.md           spawn role: fan-out search isolation
 └── copilot/
-    └── copilot-instructions.md     Copilot instructions template
+    ├── copilot-instructions.md     Copilot instructions template
+    ├── major.agent.md              Major template (Copilot)
+    └── agents/                     Copilot-dialect spawn roles
+        ├── reviewer.agent.md
+        └── researcher.agent.md
 ```
 
 After install, these symlinks exist:
 
 ```
 ~/.config/opencode/agent/major.md           → ~/.agents/opencode/agent/major.md
-~/.config/opencode/subagent/architect.md    → ~/.agents/opencode/subagent/architect.md
-... (one per subagent)
-~/.copilot/agents/<name>.agent.md           → ~/.agents/opencode/subagent/<name>.md    (VS Code Copilot dropdown pickup — same role file, dual-consumer)
+~/.config/opencode/agents/reviewer.md       → ~/.agents/opencode/subagent/reviewer.md
+~/.config/opencode/agents/researcher.md     → ~/.agents/opencode/subagent/researcher.md
+~/.copilot/agents/reviewer.agent.md         → ~/.agents/copilot/agents/reviewer.agent.md   (Copilot dialect — separate file)
+~/.copilot/agents/researcher.agent.md       → ~/.agents/copilot/agents/researcher.agent.md
 ~/.copilot/agents/major.agent.md            (Major is Copilot-only — real file, no L1 equivalent)
 ~/AGENTS.md                                 → ~/.agents/AGENTS.md
 ```
@@ -182,7 +195,8 @@ not via this directory.
 ```bash
 # Remove symlinks (source files in ~/.agents/ are untouched)
 rm ~/.config/opencode/agent/major.md
-rm ~/.config/opencode/subagent/{architect,coder,debugger,reviewer,researcher,tester,doc-writer}.md
+rm ~/.config/opencode/agents/{reviewer,researcher}.md
+rm ~/.copilot/agents/{reviewer,researcher}.agent.md
 rm ~/AGENTS.md
 
 # Optionally remove the source entirely

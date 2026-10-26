@@ -1,10 +1,14 @@
 ---
 name: reviewer
 description: Spawned fresh-context verification role. Reviews a diff with no anchoring on the author's reasoning by loading the code-review skill in a clean context. Invoke when independent verification matters — security-sensitive changes, post-implementation review, or a second opinion.
-tools: ['read', 'edit', 'execute', 'search']
-color: blue
-model: inherit
 mode: subagent
+color: info
+model: openai/gpt-6.1-sol
+permission:
+  edit: allow
+  bash:
+    "*": allow
+    "sudo *": ask
 ---
 
 <role>

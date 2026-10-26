@@ -4,8 +4,8 @@
 Blocking: any prose sentence over 20 words (STYLE.md, Documentation section).
 Warnings: passive-voice hits and wordy-form vocabulary.
 
-Scope: git-tracked .md files, excluding upstream-synced skills/ (except
-laya-triage), wiki history, backups, and .zcode/ tool session state.
+Scope: git-tracked .md files, excluding upstream-synced skills/,
+wiki history, backups, and .zcode/ tool session state.
 Add --quiet to print failures only.
 """
 import re, subprocess, sys
@@ -26,7 +26,7 @@ def targets():
     keep = []
     for f in out:
         if f.startswith(("wiki/", ".archive/", ".zcode/")): continue
-        if f.startswith("skills/") and not f.startswith("skills/laya-triage/"): continue
+        if f.startswith("skills/"): continue
         if f.startswith("evals/"): continue
         keep.append(HUB / f)
     keep += [Path.home() / ".codex/AGENTS.md", Path.home() / ".gemini/GEMINI.md"]

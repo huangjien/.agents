@@ -77,39 +77,49 @@ fi
 
 log "=== OpenCode integration ==="
 mkdirp "${OPENCODE_DIR}/agent"
-mkdirp "${OPENCODE_DIR}/subagent"
+mkdirp "${OPENCODE_DIR}/agents"
 
 # Major agent
 link "${AGENTS_DIR}/opencode/agent/major.md" "${OPENCODE_DIR}/agent/major.md"
 
-# Spawn roles (the only subagents — skills carry the knowledge)
+# Spawn roles (the only subagents — skills carry the knowledge).
+# OpenCode scans agent/ and agents/, NOT subagent/ — roles linked
+# into subagent/ were silently invisible to the Task tool.
 for sub in researcher reviewer; do
   src="${AGENTS_DIR}/opencode/subagent/${sub}.md"
   if [[ ! -f "$src" ]]; then
     warn "missing spawn role file: ${src} — skipping"
     continue
   fi
-  link "$src" "${OPENCODE_DIR}/subagent/${sub}.md"
+  link "$src" "${OPENCODE_DIR}/agents/${sub}.md"
 done
 
-# Prune broken subagent symlinks (roles retired in the skills-first redesign)
-for dst in "${OPENCODE_DIR}/subagent/"*.md; do
+# Prune broken agent symlinks (roles retired in the skills-first redesign)
+for dst in "${OPENCODE_DIR}/agents/"*.md "${OPENCODE_DIR}/agent/"*.md; do
   [[ -L "$dst" && ! -e "$dst" ]] && { rm "$dst"; warn "pruned broken symlink: ${dst}"; }
 done
 
-info "OpenCode: $(ls "${OPENCODE_DIR}/agent/" 2>/dev/null | wc -l | tr -d ' ') agents, $(ls "${OPENCODE_DIR}/subagent/" 2>/dev/null | wc -l | tr -d ' ') spawn roles"
+# Remove the old subagent/ dir — OpenCode never scanned it.
+if [[ -d "${OPENCODE_DIR}/subagent" ]]; then
+  rm -f "${OPENCODE_DIR}/subagent/"*.md
+  rmdir "${OPENCODE_DIR}/subagent" 2>/dev/null \
+    && info "removed stale ${OPENCODE_DIR}/subagent (never scanned by OpenCode)"
+fi
+
+info "OpenCode: $(ls "${OPENCODE_DIR}/agent/" 2>/dev/null | wc -l | tr -d ' ') agents, $(ls "${OPENCODE_DIR}/agents/" 2>/dev/null | wc -l | tr -d ' ') spawn roles"
 info "Switch to Major via /agents → 'major', or set as default in opencode.json"
 
 # VS Code Copilot discovery layer: each spawn role file in
-# opencode/subagent/ becomes a symlink at ~/.copilot/agents/<name>.agent.md
-# so VS Code Copilot's chat dropdown shows it. Skills need no
-# registration — Copilot loads them from ~/.agents/skills/ by description.
+# copilot/agents/ becomes a symlink at ~/.copilot/agents/<name>.agent.md
+# so VS Code Copilot's chat dropdown shows it. Copilot and OpenCode
+# disagree on frontmatter dialect (tools array vs object, model names
+# vs provider/model-id), so each surface needs its own file.
 log "=== Copilot agent discovery layer ==="
 mkdirp "${HOME}/.copilot/agents"
-for src in "${AGENTS_DIR}"/opencode/subagent/*.md; do
+for src in "${AGENTS_DIR}"/copilot/agents/*.agent.md; do
   [[ -f "$src" ]] || continue
-  name="$(basename "${src%.md}")"
-  link "$src" "${HOME}/.copilot/agents/${name}.agent.md"
+  name="$(basename "$src")"
+  link "$src" "${HOME}/.copilot/agents/${name}"
 done
 # Prune broken Copilot symlinks that pointed at retired hub role files
 # (leave non-hub files like gsd-*.agent.md untouched)
@@ -155,7 +165,7 @@ info "Agents hub installed (skills-first):"
 echo "  ~/.agents/                          ← source of truth"
 echo "  ~/.agents/skills/                   ← dispatch layer (route.yaml → dispatch.skill)"
 echo "  ~/.config/opencode/agent/major.md   ← OpenCode entry point"
-echo "  ~/.config/opencode/subagent/*.md    ← 2 spawn roles (researcher, reviewer)"
+echo "  ~/.config/opencode/agents/*.md     ← 2 spawn roles (researcher, reviewer)"
 echo "  ~/.copilot/agents/*.agent.md         ← VS Code Copilot (major + 2 spawn-role symlinks)"
 echo "  ~/AGENTS.md                         ← pi / Codex / Gemini / Copilot (auto-discovered)"
 echo "  ~/.agents/mcp/*.md                  ← Shared tool-specific instructions (e.g. codebase-memory)"
@@ -175,38 +185,6 @@ if [[ -d "${AGENTS_DIR}/.git" ]]; then
   log "core.hooksPath → .githooks (pre-commit runs bin/test-hub)"
 else
   info "${AGENTS_DIR} is not a git checkout; skipping git hooks"
-fi
-
-# ----- 4b. Laya decision daemon (optional routing fallback) ------- --
-
-log "=== Laya daemon ==="
-LAYA_VENV="${HOME}/.venvs/laya"
-LAYA_PLIST_SRC="${AGENTS_DIR}/laya/com.local.laya.plist"
-LAYA_PLIST_DST="${HOME}/Library/LaunchAgents/com.local.laya.plist"
-if curl -sf -m 2 localhost:8019/health >/dev/null 2>&1; then
-  info "laya already running on :8019"
-elif [[ -x "${LAYA_VENV}/bin/laya-serve" ]]; then
-  mkdir -p "${HOME}/.laya/logs"
-  if [[ ! -f "$LAYA_PLIST_DST" && -f "$LAYA_PLIST_SRC" ]]; then
-    sed "s|__HOME__|${HOME}|g" "$LAYA_PLIST_SRC" > "$LAYA_PLIST_DST"
-    log "installed LaunchAgent: ${LAYA_PLIST_DST}"
-  fi
-  if [[ -f "$LAYA_PLIST_DST" ]]; then
-    launchctl bootstrap "gui/$(id -u)" "$LAYA_PLIST_DST" 2>/dev/null \
-      || launchctl load -w "$LAYA_PLIST_DST" 2>/dev/null || true
-    sleep 2
-    if curl -sf -m 8 localhost:8019/health >/dev/null 2>&1; then
-      log "laya started on :8019 (cold start can take ~7 s)"
-    else
-      warn "laya LaunchAgent fired but health check failed; see ~/.laya/logs/"
-    fi
-  else
-    warn "no LaunchAgent plist; start manually: ${LAYA_VENV}/bin/laya-serve"
-  fi
-else
-  warn "laya venv missing — routing falls back to keywords only (works, less accurate). To install:"
-  warn "  python3 -m venv ${LAYA_VENV} && ${LAYA_VENV}/bin/pip install laya"
-  warn "  then re-run this script to install the LaunchAgent"
 fi
 
 # ----- 5. CLI tool wrappers -------------------------------------- --

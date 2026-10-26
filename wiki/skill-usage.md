@@ -11,3 +11,4 @@ rows and overlapping scope become cull or merge candidates.
 |---|---|---|
 | 2026-10-18 | video | omp (Claude) |
 | 2026-10-18 | research-methods | ZCode |
+| 2026-10-24 | software-maintenance | omp (MiniMax-M3) |

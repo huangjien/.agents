@@ -129,11 +129,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Never delegate branching, validation, or numeric logic to an LLM call.
 - If a decision can be expressed as an `if` statement, write the `if` statement.
 - LLM output is probabilistic; deterministic outcomes require deterministic code.
-- Classification-shaped decisions → prefer the local laya engine when
-  reachable. That covers intent triage, routing pre-checks, yes/no gates, and
-  severity scoring. Use `laya_predict` (MCP) or
-  `curl -s localhost:8019/v1/systemone`. It is fast (~0.3 s), calibrated, and
-  costs zero tokens. See `mcp/laya-decisions.md`.
 
 ### 9. Tests Are Mandatory, but Passing Tests Are Not Sufficient
 
@@ -377,6 +372,39 @@ Nine route intents, each mapping to a skill (see [`route.yaml`](./route.yaml)):
 | `researcher` | Noisy fan-out search without polluting the main context; returns a synthesized summary | `research-methods` |
 | `reviewer` | Fresh-context verification, no anchoring on the author's reasoning | `code-review` |
 
+## Model separation: review uses a different model than authoring
+
+A reviewer on the author's own model shares that model's blind spots.
+Several reviewers agreeing on a wrong answer is not verification. So the
+`reviewer` role runs on a **different model family** than the session
+that wrote the code.
+
+| Surface | Authoring model | Reviewer model |
+|---|---|---|
+| pi | session model (e.g. `zai-coding-cn/glm-5.3`) | `openai/gpt-6.1-sol` |
+| OpenCode | `zhipu/glm-5.3` | `openai/gpt-6.1-sol` |
+| Copilot | session default | `mai-code-1.1-flash` (falls back to `gpt-6-luna`) |
+
+Rules that keep this true:
+
+- **pi** — `~/.pi/agent/settings.json` sets `subagents.agentOverrides`
+  for `reviewer` and `evidence-auditor`. It also sets
+  `agentOverridesByProvider`, so the reviewer swaps to another family
+  when the parent runs on the reviewer's usual family.
+- **OpenCode** — `~/.agents/opencode/subagent/reviewer.md` pins
+  `model: openai/gpt-6.1-sol`. The author's default stays `zhipu/glm-5.3`.
+- **Copilot** — `~/.agents/copilot/agents/reviewer.agent.md` pins
+  `model: ['mai-code-1.1-flash', 'gpt-6-luna']`. The researcher role
+  prefers `gpt-6-luna` first, so the two roles diverge when the
+  account offers both.
+- **Researcher** keeps the session model on every surface. Research
+  and authoring are the same job; only verification is independent.
+
+OpenCode and Copilot need separate role files. Their frontmatter
+dialects differ: OpenCode wants `tools` as an object plus `permission`,
+Copilot wants `tools` as an array. One shared file fails to load on
+one of them.
+
 ## Major's job
 
 When a user sends a message:
@@ -384,15 +412,8 @@ When a user sends a message:
 1. **Load routing rules** from `~/.agents/route.yaml`.
 2. **Classify with the keyword router first.** Greeting check, then
    trigger matching (phrases beat keywords; word boundaries; priority
-   order — see the routing-rules header in `route.yaml`). On the eval
-   set this beats laya intent, so it runs first.
-3. **Fall back to laya when no trigger matched.** Ask the smalltalk gate
-   (`noul >= 0.5`) and the intent question
-   (`answer_confidence >= 0.5`) in one call. Use the local decision
-   engine: `laya_predict` MCP tool or
-   `curl -s localhost:8019/v1/systemone`. Payload templates:
-   `mcp/laya-decisions.md`.
-4. **Decide**:
+   order — see the routing-rules header in `route.yaml`).
+3. **Decide**:
    - **Simple / no match** (greetings, identity, clarifications,
      question-shaped shorts) → handle directly or route to
      investigation, do NOT dispatch further.
@@ -404,8 +425,8 @@ When a user sends a message:
      announce `Spawning {role} because {condition}`. Then invoke the
      spawn role with the verbatim request.
    - **Ambiguous** → ask ONE clarifying question, then dispatch.
-5. **Synthesize** spawned output — never paste it verbatim.
-6. **Apply Part 1 + Part 2 rules** — all dispatch paths must follow the
+4. **Synthesize** spawned output — never paste it verbatim.
+5. **Apply Part 1 + Part 2 rules** — all dispatch paths must follow the
    engineering and safety standards above. They are not suggestions;
    they are the contract.
 
@@ -429,7 +450,7 @@ When a user sends a message:
 |------|-----------|----------|
 | **pi** | Auto-reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context file | Single-agent — follows Part 1 + Part 2 directly, and Part 3 routing by loading skills in-session. Can also spawn isolation roles via `subagent` / `workflow` tools. |
 | **OpenCode** | Native multi-agent. `major.md` is a real agent; spawn roles invoked via `task()` tool | Major loads the matched skill and executes in-context; spawns `researcher`/`reviewer` under spawn conditions. |
-| **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Spawn role files live at `~/.agents/opencode/subagent/`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | `major.agent.md` is a real file (not a symlink). It loads skills in-context by default and uses the `agent` tool to spawn `researcher`/`reviewer` under spawn conditions. To add a spawn role: write `~/.agents/opencode/subagent/<name>.md` with the canonical YAML frontmatter, then add the discovery symlink. |
+| **VSCode + Copilot** | Reads `~/.agents/AGENTS.md` (via the `~/AGENTS.md` discovery symlink) as context. Copilot-dialect spawn role files live at `~/.agents/copilot/agents/`; symlinks at `~/.copilot/agents/<name>.agent.md` make them discoverable in the chat dropdown. | `major.agent.md` is a real file (not a symlink). It loads skills in-context by default and uses the `agent` tool to spawn `researcher`/`reviewer` under spawn conditions. To add a spawn role: write `~/.agents/copilot/agents/<name>.agent.md`, then add the discovery symlink. |
 | **Codex** | Reads `~/.codex/AGENTS.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
 | **Gemini** | Reads `~/.gemini/GEMINI.md` (thin pointer to this doc) | Single-agent emulation: same routing rules — classify, load skill, execute in-context. |
 | **ZCode** | Reads `~/.zcode/AGENTS.md` (thin pointer to this doc) | Single-agent: follows Part 1 + Part 2 + Output Style directly. Skills resolve through ZCode's own skill system, which already includes `~/.agents/skills/`; ZCode session mechanics (plans, memory, resolution order) stay in `~/.zcode/`. |
@@ -447,11 +468,11 @@ When a user sends a message:
 ├── route.yaml                      ← routing rules (edit this to retune)
 ├── README.md                       ← setup & quick start
 ├── STYLE.md                        ← code style + testing + doc standards (applies when a repo has no linter)
-├── install.sh                      ← one-shot installer (symlinks, git hooks, laya daemon, self-bootstrap)
+├── install.sh                      ← one-shot installer (symlinks, git hooks, self-bootstrap)
 ├── .githooks/                      ← git hooks (pre-commit runs bin/test-hub via core.hooksPath)
-├── bin/                            ← hub CLI tools (laya-classify, laya-screen, test-hub, style-check, ...)
-├── evals/                          ← labeled prompt sets + eval runners (routing eval: evals/routing/)
-├── laya/                           ← laya daemon LaunchAgent template (com.local.laya.plist)
+├── .github/workflows/              ← hub-ci: static, workflows, shellcheck, routing eval, model-separation fixtures, fresh-HOME install
+├── bin/                            ← hub CLI tools (test-hub, style-check, ...)
+├── evals/                          ← labeled prompt sets + eval runners (routing eval: evals/routing/; model-separation fixtures: evals/model-separation/)
 ├── opencode/
 │   ├── agent/
 │   │   └── major.md                ← Major agent definition (OpenCode; frontmatter merged so also Copilot-readable)
@@ -470,19 +491,21 @@ When a user sends a message:
 │   └── ...                         ← (route.yaml dispatch.skill targets must exist here)
 ├── copilot/
 │   ├── copilot-instructions.md     ← Copilot-specific template (mirrors Part 1+2)
-│   └── major.agent.md              ← Major orchestrator template (seeds ~/.copilot/agents/major.agent.md)
+│   ├── major.agent.md              ← Major orchestrator template (seeds ~/.copilot/agents/major.agent.md)
+│   └── agents/                     ← Copilot-dialect spawn roles (tools as array, model names)
+│       ├── researcher.agent.md
+│       └── reviewer.agent.md
 ├── mcp/                              ← shared tool-agnostic instruction modules
-│   ├── codebase-memory.md
-│   └── laya-decisions.md            ← laya local decision engine (thresholds, payloads)
+│   └── codebase-memory.md
 └── workflows/                       ← custom JavaScript workflow scripts (`<verb>-<noun>.js`)
-    ├── README.md                   ← convention + when-to-use-this-vs-a-skill + laya gate pattern
+    ├── README.md                   ← convention + when-to-use-this-vs-a-skill
     └── test.js                     ← static workflow checks (run via bin/test-workflows)
 
 (Outside this tree, but consumed by VS Code Copilot via symlinks:)
 ~/.copilot/agents/                   ← symlinks to role files; only `major.agent.md` is a real file
     ├── major.agent.md              ← real file; seeded from ~/.agents/copilot/major.agent.md on first install
-    ├── researcher.agent.md         → ~/.agents/opencode/subagent/researcher.md
-    └── reviewer.agent.md           → ~/.agents/opencode/subagent/reviewer.md
+    ├── researcher.agent.md         → ~/.agents/copilot/agents/researcher.agent.md
+    └── reviewer.agent.md           → ~/.agents/copilot/agents/reviewer.agent.md
 ```
 
 ## Editing the system
@@ -493,21 +516,43 @@ When a user sends a message:
   `route.yaml` with `dispatch.skill: <name>`. `bin/test-hub` verifies
   every dispatch target exists on disk.
 - **Add a spawn role** (rare — only for a genuinely new isolation job):
-  write `~/.agents/opencode/subagent/<name>.md` with the canonical YAML
-  frontmatter:
-  ```
-  ---
-  name: <name>
-  description: <one-line summary; state the spawn condition>
-  tools: ['read', 'edit', 'execute', 'search']   # add 'web' if it needs web access
-  color: <distinct color name>
-  model: inherit
-  mode: subagent
-  ---
-  ```
-  The role must read a skill on start (`loads:` in `route.yaml`). Add the
-  `~/.copilot/agents/<name>.agent.md → <path>` symlink, register under
-  `spawn_roles:` in `route.yaml`, re-run `install.sh`.
+  write two files, one per dialect. OpenCode and Copilot parse
+  frontmatter differently, so a single shared file fails to load on one
+  of them.
+  - `~/.agents/opencode/subagent/<name>.md` — OpenCode dialect:
+    `tools` as an object, `permission` block, `model` as
+    `provider/model-id`:
+    ```
+    ---
+    name: <name>
+    description: <one-line summary; state the spawn condition>
+    mode: subagent
+    color: <primary|secondary|accent|success|warning|error|info>
+    model: inherit
+    permission:
+      edit: allow
+      bash:
+        "*": allow
+    ---
+    ```
+  - `~/.agents/copilot/agents/<name>.agent.md` — Copilot dialect:
+    `tools` as an array, `model` as an array of model names:
+    ```
+    ---
+    name: <name>
+    description: <one-line summary; state the spawn condition>
+    tools: ['read', 'edit', 'execute', 'search']
+    color: <distinct color name>
+    model: ['<preferred model>', '<fallback model>']
+    ---
+    ```
+  The role must read a skill on start (`loads:` in `route.yaml`). The
+  `~/.copilot/agents/<name>.agent.md → <path>` symlink comes from
+  `install.sh`. Register the role under `spawn_roles:` in `route.yaml`,
+  then re-run `install.sh`.
+- **Set a role's model**: a verification role must differ from the
+  authoring model. `bin/_check_model_separation` enforces this across
+  pi, OpenCode, and Copilot.
 - **Change routing**: edit `route.yaml`. No code changes required.
 - **Tune engineering behavior**: edit Part 1 / Part 2 of this file (universal)
   *or* the matching tool-specific file (`copilot/copilot-instructions.md`).

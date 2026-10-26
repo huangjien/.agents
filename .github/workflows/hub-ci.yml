@@ -1,0 +1,187 @@
+# hub-ci — test every aspect of the ~/.agents hub.
+#
+# The hub normally lives at ~/.agents on the laptop; here the checkout is
+# symlinked to ~/.agents so the bin/ scripts (which hardcode HOME/.agents)
+# run unmodified. Machine-specific surfaces (pi settings, OpenCode config)
+# are absent in CI by design: the model-separation job covers them with
+# committed fixtures instead.
+name: hub-ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 1. The hub's own static harness: bash -n, py_compile, route.yaml
+  #    schema, skill frontmatter, model separation, prose style.
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Symlink checkout to ~/.agents
+        run: ln -s "$GITHUB_WORKSPACE" "$HOME/.agents"
+      - name: bin/test-hub
+        run: bash bin/test-hub
+
+  # 2. Static checks for the pi-dynamic-workflows scripts (node, no deps).
+  workflow-scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: workflows/test.js
+        run: node workflows/test.js
+
+  # 3. ShellCheck on every bash script (error-severity gates; lower
+  #    severities print as info so hand-tuned style is not blocked).
+  shellcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update -q && sudo apt-get install -y -q shellcheck
+      - name: shellcheck (errors gate)
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r -d '' f; do
+            echo "checking $f"
+            shellcheck -S error "$f" || status=1
+          done < <(for f in bin/* .githooks/pre-commit install.sh; do
+                     [[ -f "$f" ]] || continue
+                     head -1 "$f" | grep -q "bash" && printf '%s\0' "$f"
+                   done)
+          exit $status
+
+  # 4. Routing eval: keyword router over the labeled prompt set.
+  #    Threshold 90% (set is small and triggers were partly tuned on it).
+  routing-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Run eval and gate accuracy
+        run: |
+          cd evals/routing
+          python3 run_eval.py
+          python3 - <<'PY'
+          import json, sys
+          sys.path.insert(0, ".")
+          import run_eval
+          data = [json.loads(l) for l in open("prompts.jsonl") if l.strip()]
+          labels = [d["label"] for d in data]
+          preds = [run_eval.keyword_route(d["prompt"]) for d in data]
+          ok = sum(p == l for p, l in zip(preds, labels))
+          acc = ok / len(labels)
+          print(f"keyword-router accuracy: {ok}/{len(labels)} ({acc:.0%})")
+          assert acc >= 0.90, f"routing accuracy {acc:.0%} below 90% gate"
+          PY
+
+  # 5. Model separation: reviewer must differ from the authoring model.
+  #    Positive fixture passes; each negative fixture must FAIL (checked
+  #    via exit code, so the checker's failure paths are under test too).
+  model-separation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: positive — all surfaces separated
+        env:
+          F: ${{ github.workspace }}/evals/model-separation
+        run: |
+          HOME="$F/home-ok" PI_CODING_AGENT_DIR="$F/pi-ok" \
+            python3 bin/_check_model_separation
+      - name: negative — pi reviewer on authoring provider
+        env:
+          F: ${{ github.workspace }}/evals/model-separation
+        run: |
+          set -euo pipefail
+          if HOME="$F/home-ok" PI_CODING_AGENT_DIR="$F/pi-clash" \
+               python3 bin/_check_model_separation; then
+            echo "expected exit 1 for pi provider clash" >&2
+            exit 1
+          fi
+          echo "correctly rejected"
+      - name: negative — copilot researcher == reviewer model
+        env:
+          F: ${{ github.workspace }}/evals/model-separation
+        run: |
+          set -euo pipefail
+          if HOME="$F/home-copilot-clash" PI_CODING_AGENT_DIR="$F/pi-ok" \
+               python3 bin/_check_model_separation; then
+            echo "expected exit 1 for copilot model clash" >&2
+            exit 1
+          fi
+          echo "correctly rejected"
+
+  # 6. install.sh end-to-end into a fresh fake HOME, then the hub's own
+  #    integration health check against that HOME. Proves: bootstrap copy,
+  #    OpenCode role links into agents/ (not subagent/), Copilot dialect
+  #    links, ~/AGENTS.md discovery symlink, dispatch skills on disk.
+  install-fresh-home:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TESTHOME: ${{ github.workspace }}/.ci-home
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run install.sh into a fresh HOME
+        run: |
+          set -euo pipefail
+          mkdir -p "$TESTHOME"
+          env HOME="$TESTHOME" bash install.sh
+      - name: verify-global-agents against the fresh HOME
+        run: |
+          set -euo pipefail
+          env HOME="$TESTHOME" bash bin/verify-global-agents
+      - name: Assert symlink layout
+        run: |
+          set -euo pipefail
+          test -L "$TESTHOME/AGENTS.md"
+          test -L "$TESTHOME/.config/opencode/agent/major.md"
+          test -L "$TESTHOME/.config/opencode/agents/reviewer.md"
+          test -L "$TESTHOME/.config/opencode/agents/researcher.md"
+          test ! -e "$TESTHOME/.config/opencode/subagent"
+          test -L "$TESTHOME/.copilot/agents/reviewer.agent.md"
+          test -L "$TESTHOME/.copilot/agents/researcher.agent.md"
+          test -f "$TESTHOME/.agents/skills/code-review/SKILL.md"
+          echo "symlink layout OK"
+      - name: Idempotency — second run changes nothing
+        run: |
+          set -euo pipefail
+          snapshot() {
+            find "$TESTHOME" -type l -print0 |
+              while IFS= read -r -d '' l; do
+                printf '%s -> %s\n' "$l" "$(readlink "$l")"
+              done | sort
+          }
+          before=$(snapshot)
+          env HOME="$TESTHOME" bash install.sh >/dev/null
+          after=$(snapshot)
+          test "$before" = "$after"
+          echo "install.sh idempotent"

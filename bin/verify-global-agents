@@ -36,8 +36,8 @@ check_file "spawn researcher" "${agents_dir}/opencode/subagent/researcher.md"
 check_file "spawn reviewer" "${agents_dir}/opencode/subagent/reviewer.md"
 check_link "home AGENTS" "${HOME}/AGENTS.md"
 check_link "OpenCode Major" "${HOME}/.config/opencode/agent/major.md"
-check_link "OpenCode researcher" "${HOME}/.config/opencode/subagent/researcher.md"
-check_link "OpenCode reviewer" "${HOME}/.config/opencode/subagent/reviewer.md"
+check_link "OpenCode researcher" "${HOME}/.config/opencode/agents/researcher.md"
+check_link "OpenCode reviewer" "${HOME}/.config/opencode/agents/reviewer.md"
 
 # Every route dispatch.skill target must exist on disk
 skill_fail=0

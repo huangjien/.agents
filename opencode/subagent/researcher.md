@@ -1,10 +1,16 @@
 ---
 name: researcher
 description: Spawned isolation role for noisy research — fan-out searches, web and doc lookups, large-context gathering. Loads the research-methods skill and returns a synthesized summary. Invoke for broad investigations that would pollute the main context.
-tools: ['read', 'edit', 'execute', 'search', 'web']
-color: indigo
-model: inherit
 mode: subagent
+color: secondary
+model: inherit
+permission:
+  edit: allow
+  bash:
+    "*": allow
+    "sudo *": ask
+  webfetch: allow
+  websearch: allow
 ---
 
 <role>

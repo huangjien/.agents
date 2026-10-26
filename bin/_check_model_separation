@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Check that verification agents run on a different model than authoring agents.
+
+The article's point: several reviewers on the author's own model share that
+model's blind spots, so agreement between them is not verification.
+
+Asserts, per surface:
+  - pi        reviewer + evidence-auditor pinned to a model whose provider
+              differs from the session default provider.
+  - OpenCode  reviewer role pins a provider/model-id that differs from the
+              OpenCode default model's provider.
+  - Copilot   reviewer agent's first preferred model differs from the
+              researcher's first preferred model.
+
+Exit 1 on any violation. Missing surfaces are reported but not fatal —
+a hub may legitimately run on one surface only.
+"""
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+HUB = HOME / ".agents"
+errors = []
+notes = []
+
+
+def frontmatter(path: Path) -> dict:
+    """Parse the first YAML frontmatter block. Returns {} when absent."""
+    if not path.is_file():
+        return {}
+    text = path.read_text(errors="ignore")
+    if not text.startswith("---"):
+        return {}
+    block = text.split("---", 2)[1]
+    out = {}
+    for line in block.splitlines():
+        m = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
+        if m:
+            out[m.group(1)] = m.group(2).strip().strip("'\"")
+    return out
+
+
+def provider_of(model_id: str) -> str:
+    return model_id.split("/", 1)[0] if "/" in model_id else model_id
+
+
+# --- pi -------------------------------------------------------------------
+pi_settings = Path(os.environ.get("PI_CODING_AGENT_DIR", HOME / ".pi" / "agent")) / "settings.json"
+if pi_settings.is_file():
+    try:
+        cfg = json.loads(pi_settings.read_text())
+    except json.JSONDecodeError as e:
+        errors.append(f"pi settings.json is not valid JSON: {e}")
+        cfg = {}
+    sub = cfg.get("subagents", {}) or {}
+    overrides = sub.get("agentOverrides", {}) or {}
+    default_provider = cfg.get("defaultProvider", "")
+    for role in ("reviewer", "evidence-auditor"):
+        model = (overrides.get(role) or {}).get("model", "")
+        if not model:
+            errors.append(f"pi: {role} has no agentOverrides model pin")
+            continue
+        if default_provider and provider_of(model) == default_provider:
+            errors.append(
+                f"pi: {role} model {model} shares the session provider "
+                f"({default_provider}); verification must use a different family"
+            )
+    by_provider = sub.get("agentOverridesByProvider", {}) or {}
+    if default_provider and default_provider not in by_provider:
+        notes.append(
+            f"pi: no agentOverridesByProvider entry for {default_provider}; "
+            "reviewer keeps its base pin"
+        )
+else:
+    notes.append("pi: no settings.json, skipped")
+
+# --- OpenCode -------------------------------------------------------------
+oc_json = HOME / ".config" / "opencode" / "opencode.json"
+oc_reviewer = HUB / "opencode" / "subagent" / "reviewer.md"
+if oc_json.is_file() and oc_reviewer.is_file():
+    try:
+        cfg = json.loads(oc_json.read_text())
+    except json.JSONDecodeError as e:
+        errors.append(f"opencode.json is not valid JSON: {e}")
+        cfg = {}
+    default_model = cfg.get("model", "")
+    reviewer_model = frontmatter(oc_reviewer).get("model", "")
+    if not reviewer_model or reviewer_model == "inherit":
+        errors.append("opencode: reviewer role does not pin a model")
+    elif default_model and provider_of(reviewer_model) == provider_of(default_model):
+        errors.append(
+            f"opencode: reviewer model {reviewer_model} shares the default "
+            f"provider ({provider_of(default_model)})"
+        )
+else:
+    notes.append("opencode: config or role file missing, skipped")
+
+# --- Copilot --------------------------------------------------------------
+cp_reviewer = HUB / "copilot" / "agents" / "reviewer.agent.md"
+cp_researcher = HUB / "copilot" / "agents" / "researcher.agent.md"
+if cp_reviewer.is_file() and cp_researcher.is_file():
+    def first_pref(path: Path) -> str:
+        raw = frontmatter(path).get("model", "")
+        if raw.startswith("["):
+            raw = raw.strip("[]").split(",")[0].strip().strip("'\"")
+        return raw
+
+    rev, res = first_pref(cp_reviewer), first_pref(cp_researcher)
+    if not rev:
+        errors.append("copilot: reviewer agent pins no model")
+    elif rev == res:
+        errors.append(
+            f"copilot: reviewer and researcher both prefer {rev}; "
+            "verification must use a different model"
+        )
+else:
+    notes.append("copilot: agent files missing, skipped")
+
+for n in notes:
+    print(f"note: {n}")
+if errors:
+    for e in errors:
+        print(f"FAIL: {e}")
+    print(f"model-separation: {len(errors)} violation(s)")
+    sys.exit(1)
+print("model-separation: OK")

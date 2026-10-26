@@ -1,0 +1,9 @@
+{
+  "defaultProvider": "zai-coding-cn",
+  "subagents": {
+    "agentOverrides": {
+      "reviewer": {"model": "zai-coding-cn/glm-5.3"},
+      "evidence-auditor": {"model": "openai/gpt-6.1-sol"}
+    }
+  }
+}

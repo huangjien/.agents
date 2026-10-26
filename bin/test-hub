@@ -36,8 +36,8 @@ check "route.yaml schema" python3 "$HUB/bin/_check_route_yaml"
 note "== skill frontmatter (name = dir) =="
 check "frontmatter names" python3 "$HUB/bin/_check_skill_names"
 
-note "== laya wiring =="
-check "laya wiring" python3 "$HUB/bin/_check_laya_wiring"
+note "== model separation (review != author) =="
+check "model separation" python3 "$HUB/bin/_check_model_separation"
 
 note "== prose style (STYLE.md) =="
 check "style-check" "$HUB/bin/style-check" --quiet
