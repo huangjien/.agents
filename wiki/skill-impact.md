@@ -52,3 +52,51 @@ recorded diff; the wiki itself is never rolled back.
   a future session, the symlink silently broke and the wiki should be
   patched to recommend a Makefile / cron `diff -rq` audit.
 - **Outcome:** accepted (2026-09-19)
+
+## #3 — 2026-10-26 — video: channel profiles are the narrative-grammar extension point
+
+- **Motivated by:** PAT-20261026-channel-profile-grammar-block
+- **Change:** one atomic insertion into
+  `~/workspace/ai-video-factory/.agents/skills/video/SKILL.md` (the
+  `~/.agents/skills/video` copy is a symlink to it), between the command
+  table's closing line and "### Visual components". Also bumps the
+  frontmatter `last_reviewed` to 2026-10-26. Adds an 8-line subsection:
+  profile block PAIRS under `packages/prompts/prompts/` are the zero-code
+  extension point for cross-video story grammar; judge criteria stay in
+  the profile's review block (scoped, regeneration-coupled cost);
+  story-shape changes never touch storyboard generation; pin with
+  `toContain` tests, `pnpm build`, smoke `video prompts show`.
+
+```diff
+--- a/.agents/skills/video/SKILL.md
++++ b/.agents/skills/video/SKILL.md
+@@ frontmatter @@
+-  last_reviewed: 2026-10-17
++  last_reviewed: 2026-10-26
+@@ after "Every command accepts `--cwd <dir>` … updates `state.yaml`." @@
++### Channel profiles are the narrative-grammar extension point (zero code)
++
++Cross-video story grammar — narrator voice, pacing, arc, plot engine —
++extends via channel-profile prompt block PAIRS in `packages/prompts/prompts/`:
++`draft-<profile>.md` (drafter rules) + `review-<profile>.md` (judge
++criteria), appended only when the article declares the profile. Zero
++TypeScript. Rules: judge criteria live in the profile's review block, never
++the global judge prompt (findings cost regeneration cycles — scope them);
++story-shape changes never touch storyboard generation (`article.md` is the
++source of truth, the storyboard re-derives); keep vocabulary consistent
++with published films (the seven plot engines in `chinese-storybook` reuse
++the naming from `projects/故事的7种基本情节`). Workflow: edit the pair → pin
++new content with `toContain` tests in
++`packages/draft/src/channel-profile.test.ts` → `pnpm build` → smoke
++`video prompts show <block>`.
++
+```
+
+- **Validation plan:** next channel-profile change (new profile, arc or
+  engine edit, or a story-channel draft) should be doable as a prompt-pair
+  edit with no TypeScript; the session doing it should find the rule in
+  the video skill and not re-derive the mechanism from source. If a
+  future session instead reaches for the global draft prompt or the
+  storyboard generator, the span is misplaced or too weak — refine rather
+  than revert.
+- **Outcome:** pending

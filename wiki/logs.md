@@ -187,3 +187,10 @@ Append-only, one entry per maintenance action (newest last).
   (OpenCode subprocesses > pi isolated-context > Copilot agent-tool
   > Codex/Gemini emulation), so the doc no longer overstates the
   isolation guarantees pi and Copilot now provide.
+- 2026-10-26 — recorded **PAT-20261026-channel-profile-grammar-block**
+  after integrating Booker's seven plot engines into the video factory's
+  `chinese-storybook` profile as a pure prompt-pair edit
+  (`draft-`/`review-channel-chinese-storybook.md` + 2 pinning tests,
+  1607/1607 green). Pattern: narrative grammar belongs in profile
+  blocks, judge criteria scoped there too (regeneration-coupled cost),
+  storyboard gen untouched because article.md is the source of truth.

@@ -56,24 +56,30 @@ if pi_settings.is_file():
         errors.append(f"pi settings.json is not valid JSON: {e}")
         cfg = {}
     sub = cfg.get("subagents", {}) or {}
-    overrides = sub.get("agentOverrides", {}) or {}
-    default_provider = cfg.get("defaultProvider", "")
-    for role in ("reviewer", "evidence-auditor"):
-        model = (overrides.get(role) or {}).get("model", "")
-        if not model:
-            errors.append(f"pi: {role} has no agentOverrides model pin")
-            continue
-        if default_provider and provider_of(model) == default_provider:
-            errors.append(
-                f"pi: {role} model {model} shares the session provider "
-                f"({default_provider}); verification must use a different family"
+    packages = [str(p) for p in (cfg.get("packages", []) or [])]
+    if not sub and not any("subagent" in p for p in packages):
+        # pi-subagents extension not configured on this surface — the
+        # reviewer role does not exist here, so pins are not applicable.
+        notes.append("pi: pi-subagents not configured; skipped")
+    else:
+        overrides = sub.get("agentOverrides", {}) or {}
+        default_provider = cfg.get("defaultProvider", "")
+        for role in ("reviewer", "evidence-auditor"):
+            model = (overrides.get(role) or {}).get("model", "")
+            if not model:
+                errors.append(f"pi: {role} has no agentOverrides model pin")
+                continue
+            if default_provider and provider_of(model) == default_provider:
+                errors.append(
+                    f"pi: {role} model {model} shares the session provider "
+                    f"({default_provider}); verification must use a different family"
+                )
+        by_provider = sub.get("agentOverridesByProvider", {}) or {}
+        if default_provider and default_provider not in by_provider:
+            notes.append(
+                f"pi: no agentOverridesByProvider entry for {default_provider}; "
+                "reviewer keeps its base pin"
             )
-    by_provider = sub.get("agentOverridesByProvider", {}) or {}
-    if default_provider and default_provider not in by_provider:
-        notes.append(
-            f"pi: no agentOverridesByProvider entry for {default_provider}; "
-            "reviewer keeps its base pin"
-        )
 else:
     notes.append("pi: no settings.json, skipped")
 

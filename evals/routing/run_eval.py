@@ -5,20 +5,20 @@ Usage: python3 evals/routing/run_eval.py
 Labels come from prompts.jsonl (human-labeled ground truth).
 Writes report.md next to this script.
 """
-import json, sys
+import json
+import re
 from pathlib import Path
+
+import yaml
 
 HERE = Path(__file__).parent
 HUB = HERE.parent.parent
-sys.path.insert(0, str(HUB / "skills" / "_tools"))
 
 INTENTS = ["laptop_administration", "software_maintenance", "debugging",
            "implementation", "review", "architecture", "testing",
            "documentation", "investigation"]
 
 # --- keyword matcher: mirrors route.yaml rules -----------------------------
-import re
-import yaml
 route = yaml.safe_load((HUB / "route.yaml").read_text())
 ROUTES = sorted(route["routes"], key=lambda r: -r.get("priority", 0))
 
@@ -62,30 +62,34 @@ def keyword_route(prompt: str) -> str:
 
 # --- metrics ---------------------------------------------------------------
 def accuracy(preds, labels):
-    ok = sum(p == l for p, l in zip(preds, labels))
+    ok = sum(p == lab for p, lab in zip(preds, labels))
     return ok, len(labels)
 
 def main():
-    data = [json.loads(l) for l in (HERE / "prompts.jsonl").read_text().splitlines() if l.strip()]
+    raw = (HERE / "prompts.jsonl").read_text().splitlines()
+    data = [json.loads(line) for line in raw if line.strip()]
     labels = [d["label"] for d in data]
 
     kw = [keyword_route(d["prompt"]) for d in data]
     kw_ok, n = accuracy(kw, labels)
 
+    n_real = sum(1 for d in data if d["source"] == "real")
+    n_syn = n - n_real
     lines = ["# Routing eval report", "",
-             f"n={n} prompts ({sum(1 for d in data if d['source']=='real')} real / "
-             f"{sum(1 for d in data if d['source']=='synthetic')} synthetic). "
-             f"Labels: human judgment.", "",
-             f"| Router | Accuracy |", "|---|---|",
-             f"| route.yaml keywords | {kw_ok}/{n} ({100*kw_ok/n:.0f}%) |"]
+             f"n={n} prompts ({n_real} real / {n_syn} synthetic). "
+             "Labels: human judgment.", "",
+             "| Router | Accuracy |", "|---|---|",
+             f"| route.yaml keywords | {kw_ok}/{n} ({100 * kw_ok / n:.0f}%) |"]
 
     lines += ["", "## Keyword-router errors", ""]
-    for d, p, l in zip(data, kw, labels):
-        if p != l: lines.append(f"- `{d['prompt'][:60]}` → kw={p}, truth={l}")
+    for d, p, lab in zip(data, kw, labels):
+        if p != lab:
+            lines.append(f"- `{d['prompt'][:60]}` → kw={p}, truth={lab}")
 
-    lines += ["", f"Keyword-router accuracy: {kw_ok}/{n} ({100*kw_ok/n:.0f}%)."]
+    lines += ["", f"Keyword-router accuracy: {kw_ok}/{n} ({100 * kw_ok / n:.0f}%)."]
     (HERE / "report.md").write_text("\n".join(lines) + "\n")
-    print("\n".join(lines[:12])); print("...full report:", HERE / "report.md")
+    print("\n".join(lines[:12]))
+    print("...full report:", HERE / "report.md")
 
 if __name__ == "__main__":
     main()
